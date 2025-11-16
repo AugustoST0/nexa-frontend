@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "nexa": {
+    "nexa-frontend": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -47,7 +47,13 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -56,10 +62,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "nexa:build:production"
+              "buildTarget": "nexa-frontend:build:production"
             },
             "development": {
-              "buildTarget": "nexa:build:development"
+              "buildTarget": "nexa-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -88,5 +94,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
