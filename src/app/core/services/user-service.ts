@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 import { User } from '../model/User';
 
@@ -11,10 +11,10 @@ import { UserUpdateResponseDTO } from '../dto/UserUpdateResponseDTO';
   providedIn: 'root',
 })
 export class UserService {
+  private http = inject(HttpClient);
+  
   baseApiUrl = environment.baseApiUrl;
   apiUrl = `${this.baseApiUrl}/users`;
-
-  constructor(private http: HttpClient) { }
 
   getAll(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);

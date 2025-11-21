@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   Validators,
   FormBuilder,
@@ -15,15 +15,16 @@ import { CommonModule } from '@angular/common';
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './cadastro.html',
   styleUrls: ['./cadastro.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Cadastro implements OnInit {
+  private userService = inject(UserService);
+  private fb = inject(FormBuilder);
+  private toastr = inject(ToastrService);
+  
   registerForm!: FormGroup;
 
-  constructor(
-    private userService: UserService,
-    private fb: FormBuilder,
-    private toastr: ToastrService
-  ) { }
+  constructor() { }
 
   ngOnInit() {
     this.registerForm = this.fb.group({
