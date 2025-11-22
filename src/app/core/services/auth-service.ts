@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
@@ -15,6 +15,11 @@ import { User } from '../model/User';
   providedIn: 'root',
 })
 export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly modalService = inject(ModalService);
+  private readonly toastr = inject(ToastrService);
+
   baseApiUrl = environment.baseApiUrl;
   apiUrl = `${this.baseApiUrl}/auth`;
 
@@ -23,12 +28,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private modalService: ModalService,
-    private toastr: ToastrService
-  ) {
+  constructor() {
     this.loadUserFromToken();
   }
 
