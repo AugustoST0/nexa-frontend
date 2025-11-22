@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
-import { ConfirmModalConfig } from '../model/ConfirmModalConfig.model';
 import { FormModalConfig } from '../model/FormModalConfig.model';
+import { ConfirmModalConfig } from '../model/ConfirmModalConfig.model';
 
 @Injectable({
   providedIn: 'root',

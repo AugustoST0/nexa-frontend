@@ -10,7 +10,8 @@
       <div class="panel-header">
         <h2>Grupos</h2>
         <app-button variant="primary" size="sm" (clicked)="onNewGrupo()">
-          + Novo Grupo
+          <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+          <span>Novo Grupo</span>
         </app-button>
       </div>
 
@@ -35,17 +36,17 @@
             >
               <div class="grupo-content">
                 <div class="grupo-info">
-                  <h3>{{ grupo.nome }}</h3>
-                  @if (grupo.descricao) {
-                    <p>{{ grupo.descricao }}</p>
+                  <h3>{{ grupo.name }}</h3>
+                  @if (grupo.description) {
+                    <p>{{ grupo.description }}</p>
                   }
                 </div>
                 <div class="grupo-actions">
                   <app-button variant="ghost" size="sm" (clicked)="onEditGrupo(grupo); $event.stopPropagation()" title="Editar">
-                    ✏️
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
                   </app-button>
                   <app-button variant="ghost" size="sm" (clicked)="onDeleteGrupo(grupo); $event.stopPropagation()" title="Excluir">
-                    🗑️
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
                   </app-button>
                 </div>
               </div>
@@ -61,7 +62,8 @@
         <h2>Tags</h2>
         @if (selectedGrupo()) {
           <app-button variant="primary" size="sm" (clicked)="onNewTag()">
-            + Nova Tag
+            <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+            <span>Nova Tag</span>
           </app-button>
         }
       </div>
@@ -72,7 +74,7 @@
         </div>
       } @else if (tags().length === 0) {
         <div class="empty-state">
-          <p>Nenhuma tag no grupo "{{ selectedGrupo()!.nome }}"</p>
+          <p>Nenhuma tag no grupo "{{ selectedGrupo()!.name }}"</p>
           <app-button variant="primary" (clicked)="onNewTag()">
             Criar Primeira Tag
           </app-button>
@@ -82,18 +84,18 @@
           @for (tag of tags(); track tag.id) {
             <app-card variant="bordered" [hoverable]="true" class="tag-card">
               <div class="tag-header">
-                <app-badge variant="primary" size="md">{{ tag.nome }}</app-badge>
+                <app-badge variant="primary" size="md">{{ tag.name }}</app-badge>
                 <div class="tag-actions">
                   <app-button variant="ghost" size="sm" (clicked)="onEditTag(tag)" title="Editar">
-                    ✏️
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
                   </app-button>
                   <app-button variant="ghost" size="sm" (clicked)="onDeleteTag(tag)" title="Excluir">
-                    🗑️
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
                   </app-button>
                 </div>
               </div>
-              @if (tag.descricao) {
-                <p class="tag-description">{{ tag.descricao }}</p>
+              @if (tag.description) {
+                <p class="tag-description">{{ tag.description }}</p>
               }
             </app-card>
           }
