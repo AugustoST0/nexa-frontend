@@ -1,54 +1,36 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { GrupoService } from '../../../core/services/grupo-service';
-import { TagService } from '../../../core/services/tag-service';
-import { ToastrService } from 'ngx-toastr';
-import { Grupo } from '../../../core/model/Grupo';
-import { Tag } from '../../../core/model/Tag';
+import { GrupoService } from '../../../core/services/crud/grupo-service';
+import { TagService } from '../../../core/services/crud/tag-service';
+import { AlertService } from '../../../core/services/alert-service';
+import { ModalService } from '../../../core/services/modal-service';
+import { Grupo } from '../../../core/model/Grupo.model';
+import { Tag } from '../../../core/model/Tag.model';
+import { FormModalConfig } from '../../../core/model/FormModalConfig.model';
+import { ButtonComponent } from '../../ui/button/button';
+import { CardComponent } from '../../ui/card/card';
+import { BadgeComponent } from '../../ui/badge/badge';
 
 @Component({
   selector: 'app-catalogo',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ButtonComponent, CardComponent, BadgeComponent],
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Catalogo implements OnInit {
-  private readonly fb = inject(FormBuilder);
   private readonly grupoService = inject(GrupoService);
   private readonly tagService = inject(TagService);
-  private readonly toastr = inject(ToastrService);
+  private readonly alertService = inject(AlertService);
+  private readonly modalService = inject(ModalService);
 
   grupos = signal<Grupo[]>([]);
   tags = signal<Tag[]>([]);
   selectedGrupo = signal<Grupo | null>(null);
   loading = signal(false);
-  
-  showGrupoForm = signal(false);
-  showTagForm = signal(false);
-  editingGrupo = signal<Grupo | null>(null);
-  editingTag = signal<Tag | null>(null);
-
-  grupoForm!: FormGroup;
-  tagForm!: FormGroup;
 
   ngOnInit() {
-    this.initializeForms();
     this.loadGrupos();
-  }
-
-  initializeForms() {
-    this.grupoForm = this.fb.group({
-      nome: ['', [Validators.required, Validators.maxLength(100)]],
-      descricao: ['', Validators.maxLength(500)],
-    });
-
-    this.tagForm = this.fb.group({
-      nome: ['', [Validators.required, Validators.maxLength(100)]],
-      descricao: ['', Validators.maxLength(500)],
-      grupoId: [null, Validators.required],
-    });
   }
 
   loadGrupos() {
@@ -59,7 +41,7 @@ export class Catalogo implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.toastr.error('Erro ao carregar grupos', 'Erro');
+        this.alertService.error('Erro ao carregar grupos');
         console.error(err);
         this.loading.set(false);
       },
@@ -72,7 +54,7 @@ export class Catalogo implements OnInit {
         this.tags.set(tags);
       },
       error: (err) => {
-        this.toastr.error('Erro ao carregar tags', 'Erro');
+        this.alertService.error('Erro ao carregar tags');
         console.error(err);
       },
     });
@@ -81,68 +63,101 @@ export class Catalogo implements OnInit {
   selectGrupo(grupo: Grupo) {
     this.selectedGrupo.set(grupo);
     this.loadTagsByGrupo(grupo.id!);
-    this.showTagForm.set(false);
-    this.editingTag.set(null);
   }
 
   onNewGrupo() {
-    this.showGrupoForm.set(true);
-    this.editingGrupo.set(null);
-    this.grupoForm.reset();
-  }
+    const config: FormModalConfig = {
+      title: 'Novo Grupo',
+      fields: [
+        {
+          name: 'nome',
+          label: 'Nome',
+          type: 'text',
+          placeholder: 'Ex: Skills, Certificações, etc.',
+          required: true,
+          maxLength: 100,
+        },
+        {
+          name: 'descricao',
+          label: 'Descrição',
+          type: 'textarea',
+          placeholder: 'Descrição opcional do grupo',
+          rows: 3,
+          maxLength: 500,
+        },
+      ],
+      submitText: 'Criar',
+      cancelText: 'Cancelar',
+    };
 
-  onEditGrupo(grupo: Grupo) {
-    this.showGrupoForm.set(true);
-    this.editingGrupo.set(grupo);
-    this.grupoForm.patchValue({
-      nome: grupo.nome,
-      descricao: grupo.descricao,
+    this.modalService.showForm(config).subscribe({
+      next: (data) => {
+        if (data) {
+          this.grupoService.create(data).subscribe({
+            next: () => {
+              this.alertService.success('Grupo criado com sucesso');
+              this.loadGrupos();
+            },
+            error: (err) => {
+              this.alertService.error('Erro ao criar grupo');
+              console.error(err);
+            },
+          });
+        }
+      },
     });
   }
 
-  onSubmitGrupo() {
-    if (this.grupoForm.invalid) {
-      this.toastr.error('Preencha todos os campos obrigatórios', 'Erro');
-      this.grupoForm.markAllAsTouched();
-      return;
-    }
+  onEditGrupo(grupo: Grupo) {
+    const config: FormModalConfig = {
+      title: 'Editar Grupo',
+      fields: [
+        {
+          name: 'nome',
+          label: 'Nome',
+          type: 'text',
+          value: grupo.nome,
+          placeholder: 'Ex: Skills, Certificações, etc.',
+          required: true,
+          maxLength: 100,
+        },
+        {
+          name: 'descricao',
+          label: 'Descrição',
+          type: 'textarea',
+          value: grupo.descricao || '',
+          placeholder: 'Descrição opcional do grupo',
+          rows: 3,
+          maxLength: 500,
+        },
+      ],
+      submitText: 'Atualizar',
+      cancelText: 'Cancelar',
+    };
 
-    const grupoData = this.grupoForm.value;
-
-    if (this.editingGrupo()) {
-      this.grupoService.update(this.editingGrupo()!.id!, grupoData).subscribe({
-        next: () => {
-          this.toastr.success('Grupo atualizado com sucesso', 'Sucesso');
-          this.loadGrupos();
-          this.showGrupoForm.set(false);
-          this.editingGrupo.set(null);
-        },
-        error: (err) => {
-          this.toastr.error('Erro ao atualizar grupo', 'Erro');
-          console.error(err);
-        },
-      });
-    } else {
-      this.grupoService.create(grupoData).subscribe({
-        next: () => {
-          this.toastr.success('Grupo criado com sucesso', 'Sucesso');
-          this.loadGrupos();
-          this.showGrupoForm.set(false);
-          this.grupoForm.reset();
-        },
-        error: (err) => {
-          this.toastr.error('Erro ao criar grupo', 'Erro');
-          console.error(err);
-        },
-      });
-    }
+    this.modalService.showForm(config).subscribe({
+      next: (data) => {
+        if (data) {
+          this.grupoService.update(grupo.id!, data).subscribe({
+            next: () => {
+              this.alertService.success('Grupo atualizado com sucesso');
+              this.loadGrupos();
+            },
+            error: (err) => {
+              this.alertService.error('Erro ao atualizar grupo');
+              console.error(err);
+            },
+          });
+        }
+      },
+    });
   }
 
   onDeleteGrupo(grupo: Grupo) {
     if (confirm(`Tem certeza que deseja excluir o grupo "${grupo.nome}"? Todas as tags associadas também serão excluídas.`)) {
       this.grupoService.delete(grupo.id!).subscribe({
         next: () => {
-          this.toastr.success('Grupo excluído com sucesso', 'Sucesso');
+          this.alertService.success('Grupo excluído com sucesso');
           this.loadGrupos();
           if (this.selectedGrupo()?.id === grupo.id) {
             this.selectedGrupo.set(null);
@@ -150,7 +165,7 @@ export class Catalogo implements OnInit {
           }
         },
         error: (err) => {
-          this.toastr.error('Erro ao excluir grupo', 'Erro');
+          this.alertService.error('Erro ao excluir grupo');
           console.error(err);
         },
       });
@@ -159,88 +174,119 @@ export class Catalogo implements OnInit {
 
   onNewTag() {
     if (!this.selectedGrupo()) {
-      this.toastr.warning('Selecione um grupo primeiro', 'Aviso');
+      this.alertService.warning('Selecione um grupo primeiro');
       return;
     }
-    this.showTagForm.set(true);
-    this.editingTag.set(null);
-    this.tagForm.reset();
-    this.tagForm.patchValue({ grupoId: this.selectedGrupo()!.id });
-  }
 
-  onEditTag(tag: Tag) {
-    this.showTagForm.set(true);
-    this.editingTag.set(tag);
-    this.tagForm.patchValue({
-      nome: tag.nome,
-      descricao: tag.descricao,
-      grupoId: tag.grupoId,
+    const config: FormModalConfig = {
+      title: 'Nova Tag',
+      fields: [
+        {
+          name: 'nome',
+          label: 'Nome',
+          type: 'text',
+          placeholder: 'Ex: Python, Java, Liderança, etc.',
+          required: true,
+          maxLength: 100,
+        },
+        {
+          name: 'descricao',
+          label: 'Descrição',
+          type: 'textarea',
+          placeholder: 'Descrição opcional da tag',
+          rows: 3,
+          maxLength: 500,
+        },
+      ],
+      submitText: 'Criar',
+      cancelText: 'Cancelar',
+    };
+
+    this.modalService.showForm(config).subscribe({
+      next: (data) => {
+        if (data) {
+          const tagData = {
+            ...data,
+            grupoId: this.selectedGrupo()!.id,
+          };
+
+          this.tagService.create(tagData).subscribe({
+            next: () => {
+              this.alertService.success('Tag criada com sucesso');
+              this.loadTagsByGrupo(this.selectedGrupo()!.id!);
+            },
+            error: (err) => {
+              this.alertService.error('Erro ao criar tag');
+              console.error(err);
+            },
+          });
+        }
+      },
     });
   }
 
-  onSubmitTag() {
-    if (this.tagForm.invalid) {
-      this.toastr.error('Preencha todos os campos obrigatórios', 'Erro');
-      this.tagForm.markAllAsTouched();
-      return;
-    }
+  onEditTag(tag: Tag) {
+    const config: FormModalConfig = {
+      title: 'Editar Tag',
+      fields: [
+        {
+          name: 'nome',
+          label: 'Nome',
+          type: 'text',
+          value: tag.nome,
+          placeholder: 'Ex: Python, Java, Liderança, etc.',
+          required: true,
+          maxLength: 100,
+        },
+        {
+          name: 'descricao',
+          label: 'Descrição',
+          type: 'textarea',
+          value: tag.descricao || '',
+          placeholder: 'Descrição opcional da tag',
+          rows: 3,
+          maxLength: 500,
+        },
+      ],
+      submitText: 'Atualizar',
+      cancelText: 'Cancelar',
+    };
 
-    const tagData = this.tagForm.value;
+    this.modalService.showForm(config).subscribe({
+      next: (data) => {
+        if (data) {
+          const tagData = {
+            ...data,
+            grupoId: tag.grupoId,
+          };
 
-    if (this.editingTag()) {
-      this.tagService.update(this.editingTag()!.id!, tagData).subscribe({
-        next: () => {
-          this.toastr.success('Tag atualizada com sucesso', 'Sucesso');
-          this.loadTagsByGrupo(this.selectedGrupo()!.id!);
-          this.showTagForm.set(false);
-          this.editingTag.set(null);
-        },
-        error: (err) => {
-          this.toastr.error('Erro ao atualizar tag', 'Erro');
-          console.error(err);
-        },
-      });
-    } else {
-      this.tagService.create(tagData).subscribe({
-        next: () => {
-          this.toastr.success('Tag criada com sucesso', 'Sucesso');
-          this.loadTagsByGrupo(this.selectedGrupo()!.id!);
-          this.showTagForm.set(false);
-          this.tagForm.reset();
-          this.tagForm.patchValue({ grupoId: this.selectedGrupo()!.id });
-        },
-        error: (err) => {
-          this.toastr.error('Erro ao criar tag', 'Erro');
-          console.error(err);
-        },
-      });
-    }
+          this.tagService.update(tag.id!, tagData).subscribe({
+            next: () => {
+              this.alertService.success('Tag atualizada com sucesso');
+              this.loadTagsByGrupo(this.selectedGrupo()!.id!);
+            },
+            error: (err) => {
+              this.alertService.error('Erro ao atualizar tag');
+              console.error(err);
+            },
+          });
+        }
+      },
+    });
   }
 
   onDeleteTag(tag: Tag) {
     if (confirm(`Tem certeza que deseja excluir a tag "${tag.nome}"?`)) {
       this.tagService.delete(tag.id!).subscribe({
         next: () => {
-          this.toastr.success('Tag excluída com sucesso', 'Sucesso');
+          this.alertService.success('Tag excluída com sucesso');
           this.loadTagsByGrupo(this.selectedGrupo()!.id!);
         },
         error: (err) => {
-          this.toastr.error('Erro ao excluir tag', 'Erro');
+          this.alertService.error('Erro ao excluir tag');
           console.error(err);
         },
       });
     }
-  }
-
-  cancelGrupoForm() {
-    this.showGrupoForm.set(false);
-    this.editingGrupo.set(null);
-    this.grupoForm.reset();
-  }
-
-  cancelTagForm() {
-    this.showTagForm.set(false);
-    this.editingTag.set(null);
-    this.tagForm.reset();
   }
 }

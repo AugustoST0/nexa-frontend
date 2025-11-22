@@ -24,6 +24,9 @@ export class FormModalComponent implements OnDestroy {
       if (config) {
         this.config = config;
         this.buildForm(config);
+      } else {
+        this.config = null;
+        this.form = new FormGroup({});
       }
     });
   }

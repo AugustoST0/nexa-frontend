@@ -5,6 +5,9 @@ const BASE_URL = environment.baseApiUrl;
 export const API_ROUTES = {
     USERS: `${BASE_URL}/users`,
     AUTH: `${BASE_URL}/auth`,
+    COLABORADORES: `${BASE_URL}/colaboradores`,
+    GRUPOS: `${BASE_URL}/grupos`,
+    TAGS: `${BASE_URL}/tags`,
 } as const;
 
 export const USER_ENDPOINTS = {
@@ -18,4 +21,30 @@ export const USER_ENDPOINTS = {
 export const AUTH_ENDPOINTS = {
     LOGIN: `${API_ROUTES.AUTH}/login`,
     REFRESH: `${API_ROUTES.AUTH}/refresh`,
+} as const;
+
+export const COLABORADOR_ENDPOINTS = {
+    GET_ALL: API_ROUTES.COLABORADORES,
+    GET_BY_ID: (id: number) => `${API_ROUTES.COLABORADORES}/${id}`,
+    CREATE: API_ROUTES.COLABORADORES,
+    UPDATE: (id: number) => `${API_ROUTES.COLABORADORES}/${id}`,
+    DELETE: (id: number) => `${API_ROUTES.COLABORADORES}/${id}`,
+    TOGGLE_STATUS: (id: number) => `${API_ROUTES.COLABORADORES}/${id}/toggle-status`,
+} as const;
+
+export const GRUPO_ENDPOINTS = {
+    GET_ALL: API_ROUTES.GRUPOS,
+    GET_BY_ID: (id: number) => `${API_ROUTES.GRUPOS}/${id}`,
+    CREATE: API_ROUTES.GRUPOS,
+    UPDATE: (id: number) => `${API_ROUTES.GRUPOS}/${id}`,
+    DELETE: (id: number) => `${API_ROUTES.GRUPOS}/${id}`,
+} as const;
+
+export const TAG_ENDPOINTS = {
+    GET_ALL: API_ROUTES.TAGS,
+    GET_BY_ID: (id: number) => `${API_ROUTES.TAGS}/${id}`,
+    CREATE: API_ROUTES.TAGS,
+    UPDATE: (id: number) => `${API_ROUTES.TAGS}/${id}`,
+    DELETE: (id: number) => `${API_ROUTES.TAGS}/${id}`,
+    GET_BY_GRUPO: (grupoId: number) => `${API_ROUTES.TAGS}/grupo/${grupoId}`,
 } as const;

@@ -1,0 +1,23 @@
+<div class="input-wrapper" [class.input-wrapper-disabled]="disabled">
+  @if(icon && iconPosition === 'left') {
+    <span class="input-icon input-icon-left">{{ icon }}</span>
+  }
+
+  <input
+    [type]="type"
+    [value]="value"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [readonly]="readonly"
+    [class]="'input input-' + size"
+    [class.input-error]="error"
+    [class.input-with-icon-left]="icon && iconPosition === 'left'"
+    [class.input-with-icon-right]="icon && iconPosition === 'right'"
+    (input)="onInput($event)"
+    (blur)="onBlur()"
+  />
+
+  @if(icon && iconPosition === 'right') {
+    <span class="input-icon input-icon-right">{{ icon }}</span>
+  }
+</div>

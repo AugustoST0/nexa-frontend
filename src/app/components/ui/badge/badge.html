@@ -1,0 +1,10 @@
+<span
+  [class]="'badge badge-' + variant + ' badge-' + size"
+  [class.badge-outline]="outline"
+  [class.badge-dot]="dot"
+>
+  @if(dot) {
+    <span class="badge-dot-indicator"></span>
+  }
+  <ng-content></ng-content>
+</span>

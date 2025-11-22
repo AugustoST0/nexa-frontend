@@ -6,155 +6,181 @@
   @if (loading()) {
     <div class="loading">Carregando...</div>
   } @else {
-    <form [formGroup]="colaboradorForm" (ngSubmit)="onSubmit()" class="colaborador-form">
-      <div class="form-section">
-        <h2>Dados Pessoais</h2>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label for="nome">Nome Completo *</label>
-            <input 
-              type="text" 
-              id="nome" 
-              formControlName="nome" 
-              placeholder="Nome completo do colaborador"
-              [class.input-error]="colaboradorForm.get('nome')?.invalid && colaboradorForm.get('nome')?.touched"
-            />
-            @if (colaboradorForm.get('nome')?.invalid && colaboradorForm.get('nome')?.touched) {
-              <span class="error-message">Nome é obrigatório</span>
-            }
+    <app-card variant="elevated" class="form-card">
+      <form [formGroup]="colaboradorForm" (ngSubmit)="onSubmit()">
+        <div class="form-section">
+          <h2>Dados Pessoais</h2>
+
+          <div class="form-row">
+            <app-form-field
+              label="Nome Completo"
+              [required]="true"
+              htmlFor="nome"
+              [error]="getErrorMessage('nome')"
+            >
+              <app-input
+                id="nome"
+                type="text"
+                formControlName="nome"
+                placeholder="Nome completo do colaborador"
+                [error]="hasError('nome')"
+              ></app-input>
+            </app-form-field>
+
+            <app-form-field
+              label="Email"
+              [required]="true"
+              htmlFor="email"
+              [error]="getErrorMessage('email')"
+            >
+              <app-input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="email@exemplo.com"
+                [error]="hasError('email')"
+              ></app-input>
+            </app-form-field>
           </div>
 
-          <div class="form-group">
-            <label for="email">Email *</label>
-            <input 
-              type="email" 
-              id="email" 
-              formControlName="email" 
-              placeholder="email@exemplo.com"
-              [class.input-error]="colaboradorForm.get('email')?.invalid && colaboradorForm.get('email')?.touched"
-            />
-            @if (colaboradorForm.get('email')?.invalid && colaboradorForm.get('email')?.touched) {
-              <span class="error-message">Email válido é obrigatório</span>
-            }
-          </div>
-        </div>
+          <div class="form-row">
+            <app-form-field
+              label="Data de Nascimento"
+              [required]="true"
+              htmlFor="dataNascimento"
+              [error]="getErrorMessage('dataNascimento')"
+            >
+              <app-input
+                id="dataNascimento"
+                type="date"
+                formControlName="dataNascimento"
+                [error]="hasError('dataNascimento')"
+              ></app-input>
+            </app-form-field>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="dataNascimento">Data de Nascimento *</label>
-            <input 
-              type="date" 
-              id="dataNascimento" 
-              formControlName="dataNascimento"
-              [class.input-error]="colaboradorForm.get('dataNascimento')?.invalid && colaboradorForm.get('dataNascimento')?.touched"
-            />
-            @if (colaboradorForm.get('dataNascimento')?.invalid && colaboradorForm.get('dataNascimento')?.touched) {
-              <span class="error-message">Data de nascimento é obrigatória</span>
-            }
-          </div>
-
-          <div class="form-group">
-            <label for="dataAdmissao">Data de Admissão *</label>
-            <input 
-              type="date" 
-              id="dataAdmissao" 
-              formControlName="dataAdmissao"
-              [class.input-error]="colaboradorForm.get('dataAdmissao')?.invalid && colaboradorForm.get('dataAdmissao')?.touched"
-            />
-            @if (colaboradorForm.get('dataAdmissao')?.invalid && colaboradorForm.get('dataAdmissao')?.touched) {
-              <span class="error-message">Data de admissão é obrigatória</span>
-            }
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2>Dados Profissionais</h2>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label for="cargo">Cargo *</label>
-            <input 
-              type="text" 
-              id="cargo" 
-              formControlName="cargo" 
-              placeholder="Ex: Desenvolvedor, Analista, etc."
-              [class.input-error]="colaboradorForm.get('cargo')?.invalid && colaboradorForm.get('cargo')?.touched"
-            />
-            @if (colaboradorForm.get('cargo')?.invalid && colaboradorForm.get('cargo')?.touched) {
-              <span class="error-message">Cargo é obrigatório</span>
-            }
-          </div>
-
-          <div class="form-group">
-            <label for="departamento">Departamento *</label>
-            <input 
-              type="text" 
-              id="departamento" 
-              formControlName="departamento" 
-              placeholder="Ex: TI, RH, Financeiro, etc."
-              [class.input-error]="colaboradorForm.get('departamento')?.invalid && colaboradorForm.get('departamento')?.touched"
-            />
-            @if (colaboradorForm.get('departamento')?.invalid && colaboradorForm.get('departamento')?.touched) {
-              <span class="error-message">Departamento é obrigatório</span>
-            }
+            <app-form-field
+              label="Data de Admissão"
+              [required]="true"
+              htmlFor="dataAdmissao"
+              [error]="getErrorMessage('dataAdmissao')"
+            >
+              <app-input
+                id="dataAdmissao"
+                type="date"
+                formControlName="dataAdmissao"
+                [error]="hasError('dataAdmissao')"
+              ></app-input>
+            </app-form-field>
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="supervisorId">Supervisor</label>
-            <select id="supervisorId" formControlName="supervisorId">
-              <option [value]="null">Sem supervisor</option>
-              @for (supervisor of supervisores(); track supervisor.id) {
-                <option [value]="supervisor.id">{{ supervisor.nome }}</option>
-              }
-            </select>
+        <div class="form-section">
+          <h2>Dados Profissionais</h2>
+
+          <div class="form-row">
+            <app-form-field
+              label="Cargo"
+              [required]="true"
+              htmlFor="cargo"
+              [error]="getErrorMessage('cargo')"
+            >
+              <app-input
+                id="cargo"
+                type="text"
+                formControlName="cargo"
+                placeholder="Ex: Desenvolvedor, Analista, etc."
+                [error]="hasError('cargo')"
+              ></app-input>
+            </app-form-field>
+
+            <app-form-field
+              label="Departamento"
+              [required]="true"
+              htmlFor="departamento"
+              [error]="getErrorMessage('departamento')"
+            >
+              <app-input
+                id="departamento"
+                type="text"
+                formControlName="departamento"
+                placeholder="Ex: TI, RH, Financeiro, etc."
+                [error]="hasError('departamento')"
+              ></app-input>
+            </app-form-field>
           </div>
 
-          @if (isEditMode()) {
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input type="checkbox" formControlName="ativo" />
-                <span>Colaborador Ativo</span>
-              </label>
-            </div>
-          }
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2>Tags / Skills</h2>
-        <div class="tags-container">
-          @if (availableTags().length === 0) {
-            <p class="no-tags">Nenhuma tag disponível. <a routerLink="/catalogo">Criar tags no catálogo</a></p>
-          } @else {
-            @for (tag of availableTags(); track tag.id) {
-              <button 
-                type="button"
-                class="tag-chip"
-                [class.tag-selected]="isTagSelected(tag.id!)"
-                (click)="toggleTag(tag.id!)"
-              >
-                {{ tag.nome }}
-                @if (tag.grupo) {
-                  <span class="tag-group">{{ tag.grupo.nome }}</span>
+          <div class="form-row">
+            <app-form-field
+              label="Supervisor"
+              htmlFor="supervisorId"
+            >
+              <select id="supervisorId" formControlName="supervisorId" class="select-field">
+                <option [value]="null">Sem supervisor</option>
+                @for (supervisor of supervisores(); track supervisor.id) {
+                  <option [value]="supervisor.id">{{ supervisor.nome }}</option>
                 }
-              </button>
-            }
-          }
-        </div>
-      </div>
+              </select>
+            </app-form-field>
 
-      <div class="form-actions">
-        <button type="button" class="btn-secondary" (click)="onCancel()">
-          Cancelar
-        </button>
-        <button type="submit" class="btn-primary" [disabled]="colaboradorForm.invalid || loading()">
-          {{ isEditMode() ? 'Atualizar' : 'Criar' }} Colaborador
-        </button>
-      </div>
-    </form>
+            @if (isEditMode()) {
+              <div class="checkbox-container">
+                <label class="checkbox-label">
+                  <input type="checkbox" formControlName="ativo" />
+                  <span>Colaborador Ativo</span>
+                </label>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Tags / Skills</h2>
+          <div class="tags-container">
+            @if (availableTags().length === 0) {
+              <p class="no-tags">Nenhuma tag disponível. <a routerLink="/catalogo">Criar tags no catálogo</a></p>
+            } @else {
+              @for (tag of availableTags(); track tag.id) {
+                <button
+                  type="button"
+                  class="tag-chip"
+                  [class.tag-selected]="isTagSelected(tag.id!)"
+                  (click)="toggleTag(tag.id!)"
+                >
+                  <app-badge
+                    [variant]="isTagSelected(tag.id!) ? 'primary' : 'secondary'"
+                    size="md"
+                  >
+                    {{ tag.nome }}
+                  </app-badge>
+                  @if (tag.grupo) {
+                    <span class="tag-group">{{ tag.grupo.nome }}</span>
+                  }
+                </button>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <app-button
+            type="button"
+            variant="outline"
+            size="lg"
+            (clicked)="onCancel()"
+          >
+            Cancelar
+          </app-button>
+          <app-button
+            type="submit"
+            variant="primary"
+            size="lg"
+            [disabled]="colaboradorForm.invalid"
+            [loading]="loading()"
+          >
+            {{ isEditMode() ? 'Atualizar' : 'Criar' }} Colaborador
+          </app-button>
+        </div>
+      </form>
+    </app-card>
   }
 </div>
