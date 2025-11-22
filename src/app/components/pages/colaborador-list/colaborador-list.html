@@ -1,64 +1,86 @@
 <div class="colaborador-list-container">
   <div class="header">
     <h1>Colaboradores</h1>
-    <button class="btn-primary" (click)="onNew()">
+    <app-button variant="primary" size="md" (clicked)="onNew()">
       + Novo Colaborador
-    </button>
+    </app-button>
   </div>
 
   @if (loading()) {
     <div class="loading">Carregando...</div>
   } @else if (colaboradores().length === 0) {
-    <div class="empty-state">
-      <p>Nenhum colaborador cadastrado</p>
-      <button class="btn-primary" (click)="onNew()">
-        Cadastrar Primeiro Colaborador
-      </button>
-    </div>
+    <app-card variant="bordered" class="empty-state-card">
+      <div class="empty-state">
+        <p>Nenhum colaborador cadastrado</p>
+        <app-button variant="primary" size="lg" (clicked)="onNew()">
+          Cadastrar Primeiro Colaborador
+        </app-button>
+      </div>
+    </app-card>
   } @else {
-    <div class="table-container">
-      <table class="colaboradores-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Cargo</th>
-            <th>Departamento</th>
-            <th>Idade</th>
-            <th>Tempo Empresa</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (colaborador of colaboradores(); track colaborador.id) {
+    <app-card variant="elevated" class="table-card">
+      <div class="table-container">
+        <table class="colaboradores-table">
+          <thead>
             <tr>
-              <td>{{ colaborador.nome }}</td>
-              <td>{{ colaborador.email }}</td>
-              <td>{{ colaborador.cargo }}</td>
-              <td>{{ colaborador.departamento }}</td>
-              <td>{{ colaborador.idade }}</td>
-              <td>{{ colaborador.tempoEmpresa }}</td>
-              <td>
-                <span [class]="colaborador.ativo ? 'status-active' : 'status-inactive'">
-                  {{ colaborador.ativo ? 'Ativo' : 'Inativo' }}
-                </span>
-              </td>
-              <td class="actions">
-                <button class="btn-icon btn-view" (click)="onView(colaborador.id!)" title="Visualizar">
-                  👁️
-                </button>
-                <button class="btn-icon btn-edit" (click)="onEdit(colaborador.id!)" title="Editar">
-                  ✏️
-                </button>
-                <button class="btn-icon btn-delete" (click)="onDelete(colaborador.id!, colaborador.nome)" title="Excluir">
-                  🗑️
-                </button>
-              </td>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Cargo</th>
+              <th>Departamento</th>
+              <th>Idade</th>
+              <th>Tempo Empresa</th>
+              <th>Status</th>
+              <th>Ações</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            @for (colaborador of colaboradores(); track colaborador.id) {
+              <tr>
+                <td>{{ colaborador.nome }}</td>
+                <td>{{ colaborador.email }}</td>
+                <td>{{ colaborador.cargo }}</td>
+                <td>{{ colaborador.departamento }}</td>
+                <td>{{ colaborador.idade }}</td>
+                <td>{{ colaborador.tempoEmpresa }}</td>
+                <td>
+                  <app-badge
+                    [variant]="colaborador.ativo ? 'success' : 'danger'"
+                    size="sm"
+                  >
+                    {{ colaborador.ativo ? 'Ativo' : 'Inativo' }}
+                  </app-badge>
+                </td>
+                <td class="actions">
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="onView(colaborador.id!)"
+                    title="Visualizar"
+                  >
+                    👁️
+                  </app-button>
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="onEdit(colaborador.id!)"
+                    title="Editar"
+                  >
+                    ✏️
+                  </app-button>
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="onDelete(colaborador.id!, colaborador.nome)"
+                    title="Excluir"
+                  >
+                    🗑️
+                  </app-button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </app-card>
   }
 </div>

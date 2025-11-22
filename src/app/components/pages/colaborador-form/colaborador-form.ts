@@ -1,18 +1,23 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ColaboradorService } from '../../../core/services/colaborador-service';
-import { TagService } from '../../../core/services/tag-service';
-import { ToastrService } from 'ngx-toastr';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ColaboradorService } from '../../../core/services/crud/colaborador-service';
+import { TagService } from '../../../core/services/crud/tag-service';
+import { AlertService } from '../../../core/services/alert-service';
 import { ColaboradorCreateDTO } from '../../../core/dto/ColaboradorCreateDTO';
 import { ColaboradorUpdateDTO } from '../../../core/dto/ColaboradorUpdateDTO';
-import { Tag } from '../../../core/model/Tag';
-import { ColaboradorWithCalcs } from '../../../core/model/ColaboradorWithCalcs';
+import { Tag } from '../../../core/model/Tag.model';
+import { ColaboradorWithCalcs } from '../../../core/model/ColaboradorWithCalcs.model';
+import { ButtonComponent } from '../../ui/button/button';
+import { InputComponent } from '../../ui/input/input';
+import { FormFieldComponent } from '../../ui/form-field/form-field';
+import { CardComponent } from '../../ui/card/card';
+import { BadgeComponent } from '../../ui/badge/badge';
 
 @Component({
   selector: 'app-colaborador-form',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonComponent, InputComponent, FormFieldComponent, CardComponent, BadgeComponent],
   templateUrl: './colaborador-form.html',
   styleUrl: './colaborador-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,7 +28,7 @@ export class ColaboradorForm implements OnInit {
   private readonly tagService = inject(TagService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly toastr = inject(ToastrService);
+  private readonly alertService = inject(AlertService);
 
   colaboradorForm!: FormGroup;
   isEditMode = signal(false);
@@ -97,15 +102,15 @@ export class ColaboradorForm implements OnInit {
           supervisorId: colaborador.supervisorId,
           ativo: colaborador.ativo,
         });
-        
+
         if (colaborador.tags) {
           this.selectedTags.set(colaborador.tags.map(t => t.id!));
         }
-        
+
         this.loading.set(false);
       },
       error: (err) => {
-        this.toastr.error('Erro ao carregar colaborador', 'Erro');
+        this.alertService.error('Erro ao carregar colaborador');
         console.error(err);
         this.loading.set(false);
         this.router.navigate(['/colaboradores']);
@@ -128,7 +133,7 @@ export class ColaboradorForm implements OnInit {
 
   onSubmit() {
     if (this.colaboradorForm.invalid) {
-      this.toastr.error('Preencha todos os campos obrigatórios', 'Erro');
+      this.alertService.error('Preencha todos os campos obrigatórios');
       this.colaboradorForm.markAllAsTouched();
       return;
     }
@@ -140,14 +145,14 @@ export class ColaboradorForm implements OnInit {
         ...this.colaboradorForm.value,
         tagIds: this.selectedTags(),
       };
-      
+
       this.colaboradorService.update(this.colaboradorId()!, updateData).subscribe({
         next: () => {
-          this.toastr.success('Colaborador atualizado com sucesso', 'Sucesso');
+          this.alertService.success('Colaborador atualizado com sucesso');
           this.router.navigate(['/colaboradores']);
         },
         error: (err) => {
-          this.toastr.error('Erro ao atualizar colaborador', 'Erro');
+          this.alertService.error('Erro ao atualizar colaborador');
           console.error(err);
           this.loading.set(false);
         },
@@ -157,14 +162,14 @@ export class ColaboradorForm implements OnInit {
         ...this.colaboradorForm.value,
         tagIds: this.selectedTags(),
       };
-      
+
       this.colaboradorService.create(createData).subscribe({
         next: () => {
-          this.toastr.success('Colaborador criado com sucesso', 'Sucesso');
+          this.alertService.success('Colaborador criado com sucesso');
           this.router.navigate(['/colaboradores']);
         },
         error: (err) => {
-          this.toastr.error('Erro ao criar colaborador', 'Erro');
+          this.alertService.error('Erro ao criar colaborador');
           console.error(err);
           this.loading.set(false);
         },
@@ -174,5 +179,23 @@ export class ColaboradorForm implements OnInit {
 
   onCancel() {
     this.router.navigate(['/colaboradores']);
+  }
+
+  getErrorMessage(controlName: string): string {
+    const control = this.colaboradorForm.get(controlName);
+    if (!control || !control.errors || !control.touched) return '';
+
+    if (control.errors['required']) return 'Campo obrigatório';
+    if (control.errors['email']) return 'Email inválido';
+    if (control.errors['maxlength']) {
+      return `Máximo de ${control.errors['maxlength'].requiredLength} caracteres`;
+    }
+
+    return 'Campo inválido';
+  }
+
+  hasError(fieldName: string): boolean {
+    const field = this.colaboradorForm.get(fieldName);
+    return !!(field?.invalid && field?.touched);
   }
 }

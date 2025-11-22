@@ -1,4 +1,4 @@
-import { Colaborador } from './Colaborador';
+import { Colaborador } from './Colaborador.model';
 
 export interface ColaboradorWithCalcs extends Colaborador {
   idade: string; // Ex: "34 anos"

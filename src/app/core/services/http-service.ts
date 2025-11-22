@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, finalize } from 'rxjs';
+import { OverlayService } from './overlay-service';
 
 export interface HttpOptions {
   headers?: HttpHeaders | { [header: string]: string | string[] };
@@ -11,25 +12,41 @@ export interface HttpOptions {
   providedIn: 'root',
 })
 export class HttpService {
-  constructor(private http: HttpClient) { }
+  private readonly http = inject(HttpClient);
+  private readonly overlayService = inject(OverlayService);
 
   get<T>(url: string, options?: HttpOptions): Observable<T> {
-    return this.http.get<T>(url, options);
+    this.overlayService.show();
+    return this.http.get<T>(url, options).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 
   post<T>(url: string, body: any, options?: HttpOptions): Observable<T> {
-    return this.http.post<T>(url, body, options);
+    this.overlayService.show();
+    return this.http.post<T>(url, body, options).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 
   put<T>(url: string, body: any, options?: HttpOptions): Observable<T> {
-    return this.http.put<T>(url, body, options);
+    this.overlayService.show();
+    return this.http.put<T>(url, body, options).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 
   patch<T>(url: string, body: any, options?: HttpOptions): Observable<T> {
-    return this.http.patch<T>(url, body, options);
+    this.overlayService.show();
+    return this.http.patch<T>(url, body, options).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 
   delete<T>(url: string, options?: HttpOptions): Observable<T> {
-    return this.http.delete<T>(url, options);
+    this.overlayService.show();
+    return this.http.delete<T>(url, options).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 }

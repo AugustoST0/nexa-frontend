@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap, finalize } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { TokenResponseDTO } from '../dto/TokenResponseDTO';
@@ -9,7 +9,6 @@ import { AlertService } from './alert-service';
 import { User } from '../model/User.model';
 import { HttpService } from './http-service';
 import { LocalStorageService } from './local-storage-service';
-import { OverlayService } from './overlay-service';
 import { AUTH_ENDPOINTS } from '../config/api-routes';
 
 @Injectable({
@@ -21,7 +20,6 @@ export class AuthService {
   private readonly alertService = inject(AlertService);
   private readonly httpService = inject(HttpService);
   private readonly localStorageService = inject(LocalStorageService);
-  private readonly overlayService = inject(OverlayService);
 
   private refreshInterval: any;
 
@@ -51,7 +49,6 @@ export class AuthService {
     email: string;
     password: string;
   }): Observable<TokenResponseDTO> {
-    this.overlayService.show();
     return this.httpService
       .post<TokenResponseDTO>(AUTH_ENDPOINTS.LOGIN, credencials)
       .pipe(
@@ -59,22 +56,19 @@ export class AuthService {
           this.localStorageService.setTokens(tokens.accessToken, tokens.refreshToken);
           this.loadUserFromToken();
           this.startTokenRefreshTimer();
-        }),
-        finalize(() => this.overlayService.hide())
+        })
       );
   }
 
   refreshToken(): Observable<TokenResponseDTO> {
     const refreshToken = this.localStorageService.getRefreshToken();
-    this.overlayService.show();
     return this.httpService
       .post<TokenResponseDTO>(AUTH_ENDPOINTS.REFRESH, { refreshToken })
       .pipe(
         tap((tokens: TokenResponseDTO) => {
           this.localStorageService.setTokens(tokens.accessToken, tokens.refreshToken);
           this.startTokenRefreshTimer();
-        }),
-        finalize(() => this.overlayService.hide())
+        })
       );
   }
 

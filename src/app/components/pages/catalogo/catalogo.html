@@ -6,12 +6,12 @@
 
   <div class="catalogo-layout">
     <!-- Coluna de Grupos -->
-    <div class="grupos-panel">
+    <app-card variant="elevated" class="panel">
       <div class="panel-header">
         <h2>Grupos</h2>
-        <button class="btn-primary btn-sm" (click)="onNewGrupo()">
+        <app-button variant="primary" size="sm" (clicked)="onNewGrupo()">
           + Novo Grupo
-        </button>
+        </app-button>
       </div>
 
       @if (loading()) {
@@ -19,89 +19,50 @@
       } @else if (grupos().length === 0) {
         <div class="empty-state">
           <p>Nenhum grupo cadastrado</p>
-          <button class="btn-primary" (click)="onNewGrupo()">
+          <app-button variant="primary" (clicked)="onNewGrupo()">
             Criar Primeiro Grupo
-          </button>
+          </app-button>
         </div>
       } @else {
         <div class="grupos-list">
           @for (grupo of grupos(); track grupo.id) {
-            <div 
-              class="grupo-item" 
+            <app-card
+              [variant]="selectedGrupo()?.id === grupo.id ? 'bordered' : 'default'"
+              [hoverable]="true"
+              class="grupo-item"
               [class.grupo-selected]="selectedGrupo()?.id === grupo.id"
               (click)="selectGrupo(grupo)"
             >
-              <div class="grupo-info">
-                <h3>{{ grupo.nome }}</h3>
-                @if (grupo.descricao) {
-                  <p>{{ grupo.descricao }}</p>
-                }
+              <div class="grupo-content">
+                <div class="grupo-info">
+                  <h3>{{ grupo.nome }}</h3>
+                  @if (grupo.descricao) {
+                    <p>{{ grupo.descricao }}</p>
+                  }
+                </div>
+                <div class="grupo-actions">
+                  <app-button variant="ghost" size="sm" (clicked)="onEditGrupo(grupo); $event.stopPropagation()" title="Editar">
+                    ✏️
+                  </app-button>
+                  <app-button variant="ghost" size="sm" (clicked)="onDeleteGrupo(grupo); $event.stopPropagation()" title="Excluir">
+                    🗑️
+                  </app-button>
+                </div>
               </div>
-              <div class="grupo-actions">
-                <button class="btn-icon" (click)="onEditGrupo(grupo); $event.stopPropagation()" title="Editar">
-                  ✏️
-                </button>
-                <button class="btn-icon" (click)="onDeleteGrupo(grupo); $event.stopPropagation()" title="Excluir">
-                  🗑️
-                </button>
-              </div>
-            </div>
+            </app-card>
           }
         </div>
       }
-
-      <!-- Formulário de Grupo -->
-      @if (showGrupoForm()) {
-        <div class="modal-overlay" (click)="cancelGrupoForm()">
-          <div class="modal-content" (click)="$event.stopPropagation()">
-            <h2>{{ editingGrupo() ? 'Editar Grupo' : 'Novo Grupo' }}</h2>
-            <form [formGroup]="grupoForm" (ngSubmit)="onSubmitGrupo()">
-              <div class="form-group">
-                <label for="grupoNome">Nome *</label>
-                <input 
-                  type="text" 
-                  id="grupoNome" 
-                  formControlName="nome" 
-                  placeholder="Ex: Skills, Certificações, etc."
-                  [class.input-error]="grupoForm.get('nome')?.invalid && grupoForm.get('nome')?.touched"
-                />
-                @if (grupoForm.get('nome')?.invalid && grupoForm.get('nome')?.touched) {
-                  <span class="error-message">Nome é obrigatório</span>
-                }
-              </div>
-
-              <div class="form-group">
-                <label for="grupoDescricao">Descrição</label>
-                <textarea 
-                  id="grupoDescricao" 
-                  formControlName="descricao" 
-                  placeholder="Descrição opcional do grupo"
-                  rows="3"
-                ></textarea>
-              </div>
-
-              <div class="modal-actions">
-                <button type="button" class="btn-secondary" (click)="cancelGrupoForm()">
-                  Cancelar
-                </button>
-                <button type="submit" class="btn-primary" [disabled]="grupoForm.invalid">
-                  {{ editingGrupo() ? 'Atualizar' : 'Criar' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      }
-    </div>
+    </app-card>
 
     <!-- Coluna de Tags -->
-    <div class="tags-panel">
+    <app-card variant="elevated" class="panel">
       <div class="panel-header">
         <h2>Tags</h2>
         @if (selectedGrupo()) {
-          <button class="btn-primary btn-sm" (click)="onNewTag()">
+          <app-button variant="primary" size="sm" (clicked)="onNewTag()">
             + Nova Tag
-          </button>
+          </app-button>
         }
       </div>
 
@@ -112,75 +73,32 @@
       } @else if (tags().length === 0) {
         <div class="empty-state">
           <p>Nenhuma tag no grupo "{{ selectedGrupo()!.nome }}"</p>
-          <button class="btn-primary" (click)="onNewTag()">
+          <app-button variant="primary" (clicked)="onNewTag()">
             Criar Primeira Tag
-          </button>
+          </app-button>
         </div>
       } @else {
         <div class="tags-grid">
           @for (tag of tags(); track tag.id) {
-            <div class="tag-card">
+            <app-card variant="bordered" [hoverable]="true" class="tag-card">
               <div class="tag-header">
-                <h3>{{ tag.nome }}</h3>
+                <app-badge variant="primary" size="md">{{ tag.nome }}</app-badge>
                 <div class="tag-actions">
-                  <button class="btn-icon" (click)="onEditTag(tag)" title="Editar">
+                  <app-button variant="ghost" size="sm" (clicked)="onEditTag(tag)" title="Editar">
                     ✏️
-                  </button>
-                  <button class="btn-icon" (click)="onDeleteTag(tag)" title="Excluir">
+                  </app-button>
+                  <app-button variant="ghost" size="sm" (clicked)="onDeleteTag(tag)" title="Excluir">
                     🗑️
-                  </button>
+                  </app-button>
                 </div>
               </div>
               @if (tag.descricao) {
                 <p class="tag-description">{{ tag.descricao }}</p>
               }
-            </div>
+            </app-card>
           }
         </div>
       }
-
-      <!-- Formulário de Tag -->
-      @if (showTagForm()) {
-        <div class="modal-overlay" (click)="cancelTagForm()">
-          <div class="modal-content" (click)="$event.stopPropagation()">
-            <h2>{{ editingTag() ? 'Editar Tag' : 'Nova Tag' }}</h2>
-            <form [formGroup]="tagForm" (ngSubmit)="onSubmitTag()">
-              <div class="form-group">
-                <label for="tagNome">Nome *</label>
-                <input 
-                  type="text" 
-                  id="tagNome" 
-                  formControlName="nome" 
-                  placeholder="Ex: Python, Java, Liderança, etc."
-                  [class.input-error]="tagForm.get('nome')?.invalid && tagForm.get('nome')?.touched"
-                />
-                @if (tagForm.get('nome')?.invalid && tagForm.get('nome')?.touched) {
-                  <span class="error-message">Nome é obrigatório</span>
-                }
-              </div>
-
-              <div class="form-group">
-                <label for="tagDescricao">Descrição</label>
-                <textarea 
-                  id="tagDescricao" 
-                  formControlName="descricao" 
-                  placeholder="Descrição opcional da tag"
-                  rows="3"
-                ></textarea>
-              </div>
-
-              <div class="modal-actions">
-                <button type="button" class="btn-secondary" (click)="cancelTagForm()">
-                  Cancelar
-                </button>
-                <button type="submit" class="btn-primary" [disabled]="tagForm.invalid">
-                  {{ editingTag() ? 'Atualizar' : 'Criar' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      }
-    </div>
+    </app-card>
   </div>
 </div>
