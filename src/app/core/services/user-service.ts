@@ -1,38 +1,55 @@
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, finalize } from 'rxjs';
 import { Injectable } from '@angular/core';
-
-import { User } from '../model/User';
-
-import { environment } from '../../../environments/environment';
+import { User } from '../model/User.model';
 import { UserUpdateResponseDTO } from '../dto/UserUpdateResponseDTO';
+import { HttpService } from './http-service';
+import { OverlayService } from './overlay-service';
+import { USER_ENDPOINTS } from '../config/api-routes';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  baseApiUrl = environment.baseApiUrl;
-  apiUrl = `${this.baseApiUrl}/users`;
-
-  constructor(private http: HttpClient) { }
+  constructor(
+    private httpService: HttpService,
+    private overlayService: OverlayService
+  ) { }
 
   getAll(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl);
+    this.overlayService.show();
+    return this.httpService.get<User[]>(USER_ENDPOINTS.GET_ALL).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 
   getById(id: number): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`);
+    this.overlayService.show();
+    return this.httpService.get<User>(USER_ENDPOINTS.GET_BY_ID(id)).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 
   register(user: User): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/register`, user);
+    this.overlayService.show();
+    return this.httpService.post<User>(USER_ENDPOINTS.REGISTER, user).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 
   update(id: number, user: User): Observable<UserUpdateResponseDTO> {
-    return this.http.put<UserUpdateResponseDTO>(`${this.apiUrl}/${id}`, user);
+    this.overlayService.show();
+    return this.httpService.put<UserUpdateResponseDTO>(
+      USER_ENDPOINTS.UPDATE(id),
+      user
+    ).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    this.overlayService.show();
+    return this.httpService.delete<void>(USER_ENDPOINTS.DELETE(id)).pipe(
+      finalize(() => this.overlayService.hide())
+    );
   }
 }

@@ -6,8 +6,8 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { UserService } from '../../../core/services/user-service';
-import { ToastrService } from 'ngx-toastr';
-import { User } from '../../../core/model/User';
+import { AlertService } from '../../../core/services/alert-service';
+import { User } from '../../../core/model/User.model';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -22,7 +22,7 @@ export class Cadastro implements OnInit {
   constructor(
     private userService: UserService,
     private fb: FormBuilder,
-    private toastr: ToastrService
+    private alertService: AlertService
   ) { }
 
   ngOnInit() {
@@ -40,7 +40,7 @@ export class Cadastro implements OnInit {
 
   onSubmit() {
     if (this.registerForm.invalid) {
-      this.toastr.error('Preencha todos os campos corretamente.', 'Erro');
+      this.alertService.error('Preencha todos os campos corretamente.');
       this.registerForm.markAllAsTouched();
       return;
     }
@@ -49,7 +49,7 @@ export class Cadastro implements OnInit {
     const confirmPassword = this.registerForm.get('confirmPassword')?.value;
 
     if (password !== confirmPassword) {
-      this.toastr.error('Senhas não conferem.', 'Erro');
+      this.alertService.error('Senhas não conferem.');
       return;
     }
 
@@ -64,14 +64,14 @@ export class Cadastro implements OnInit {
 
     this.userService.register(payload).subscribe({
       next: () => {
-        this.toastr.success('Usuário cadastrado com sucesso.', 'Sucesso');
+        this.alertService.success('Usuário cadastrado com sucesso.');
         this.registerForm.reset({ admin: false });
       },
       error: (err) => {
         if (err.status === 409 && err.error.code === 'EMAIL_ALREADY_EXISTS') {
-          this.toastr.error('E-mail já está sendo utilizado.', 'Erro');
+          this.alertService.error('E-mail já está sendo utilizado.');
         } else {
-          this.toastr.error('Erro ao registrar usuário.', 'Erro');
+          this.alertService.error('Erro ao registrar usuário.');
         }
         console.error(err);
       },
