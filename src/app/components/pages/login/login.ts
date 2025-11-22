@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth-service';
-import { ToastrService } from 'ngx-toastr';
+import { AlertService } from '../../../core/services/alert-service';
 import { take } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
@@ -19,7 +19,7 @@ export class Login implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private toastr: ToastrService
+    private alertService: AlertService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -39,14 +39,14 @@ export class Login implements OnInit {
 
   onSubmit() {
     if (this.loginForm.invalid) {
-      this.toastr.error('Preencha todos os campos corretamente.', 'Erro');
+      this.alertService.error('Preencha todos os campos corretamente.');
       this.loginForm.markAllAsTouched();
       return;
     }
 
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
-        this.toastr.success('Login efetivado com sucesso.', 'Sucesso');
+        this.alertService.success('Login efetivado com sucesso.');
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
@@ -54,11 +54,11 @@ export class Login implements OnInit {
           const code = err.error?.code;
 
           if (code === 'USER_NOT_FOUND') {
-            this.toastr.error('E-mail não encontrado', 'Erro');
+            this.alertService.error('E-mail não encontrado');
           } else if (code === 'INVALID_CREDENTIALS') {
-            this.toastr.error('Senha incorreta', 'Erro');
+            this.alertService.error('Senha incorreta');
           } else {
-            this.toastr.error('Erro inesperado.', 'Erro');
+            this.alertService.error('Erro inesperado.');
           }
         }
       },

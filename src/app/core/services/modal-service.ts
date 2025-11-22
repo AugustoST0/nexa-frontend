@@ -1,31 +1,56 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
-import { ModalOptions } from '../model/ModalOptions';
+import { Subject, Observable } from 'rxjs';
+import { ConfirmModalConfig } from '../model/ConfirmModalConfig.model';
+import { FormModalConfig } from '../model/FormModalConfig.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ModalService {
-  private modalSubject = new Subject<ModalOptions>();
-  private responseSubject = new Subject<boolean>();
+  private confirmModalSubject = new Subject<ConfirmModalConfig | null>();
+  private confirmResponseSubject = new Subject<boolean>();
 
-  modal$ = this.modalSubject.asObservable();
-  response$ = this.responseSubject.asObservable();
+  private formModalSubject = new Subject<FormModalConfig | null>();
+  private formResponseSubject = new Subject<any>();
 
-  show(options: ModalOptions) {
-    this.modalSubject.next(options);
-    return this.response$;
+  confirmModal$ = this.confirmModalSubject.asObservable();
+  confirmResponse$ = this.confirmResponseSubject.asObservable();
+
+  formModal$ = this.formModalSubject.asObservable();
+  formResponse$ = this.formResponseSubject.asObservable();
+
+  showConfirm(config: ConfirmModalConfig): Observable<boolean> {
+    this.confirmModalSubject.next(config);
+    return this.confirmResponse$;
+  }
+
+  showForm(config: FormModalConfig): Observable<any> {
+    this.formModalSubject.next(config);
+    return this.formResponse$;
   }
 
   close() {
-    this.modalSubject.next(null as any);
+    this.confirmModalSubject.next(null);
+    this.formModalSubject.next(null);
   }
 
   confirm() {
-    this.responseSubject.next(true);
+    this.confirmResponseSubject.next(true);
+    this.confirmModalSubject.next(null);
   }
 
   cancel() {
-    this.responseSubject.next(false);
+    this.confirmResponseSubject.next(false);
+    this.confirmModalSubject.next(null);
+  }
+
+  submitForm(data: any) {
+    this.formResponseSubject.next(data);
+    this.formModalSubject.next(null);
+  }
+
+  cancelForm() {
+    this.formResponseSubject.next(null);
+    this.formModalSubject.next(null);
   }
 }
