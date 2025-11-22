@@ -1,5 +1,5 @@
 import { Observable, finalize } from 'rxjs';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { User } from '../model/User.model';
 import { UserUpdateResponseDTO } from '../dto/UserUpdateResponseDTO';
 import { HttpService } from './http-service';
@@ -10,10 +10,8 @@ import { USER_ENDPOINTS } from '../config/api-routes';
   providedIn: 'root',
 })
 export class UserService {
-  constructor(
-    private httpService: HttpService,
-    private overlayService: OverlayService
-  ) { }
+  private readonly httpService = inject(HttpService);
+  private readonly overlayService = inject(OverlayService);
 
   getAll(): Observable<User[]> {
     this.overlayService.show();

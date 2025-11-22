@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap, finalize } from 'rxjs';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
@@ -16,19 +16,19 @@ import { AUTH_ENDPOINTS } from '../config/api-routes';
   providedIn: 'root',
 })
 export class AuthService {
+  private readonly router = inject(Router);
+  private readonly modalService = inject(ModalService);
+  private readonly alertService = inject(AlertService);
+  private readonly httpService = inject(HttpService);
+  private readonly localStorageService = inject(LocalStorageService);
+  private readonly overlayService = inject(OverlayService);
+
   private refreshInterval: any;
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(
-    private httpService: HttpService,
-    private router: Router,
-    private modalService: ModalService,
-    private alertService: AlertService,
-    private localStorageService: LocalStorageService,
-    private overlayService: OverlayService
-  ) {
+  constructor() {
     this.loadUserFromToken();
   }
 
