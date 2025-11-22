@@ -41,6 +41,12 @@
   border-bottom: 2px solid var(--color-border-light);
 }
 
+.panel-header app-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
 .panel-header h2 {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
@@ -107,6 +113,13 @@
 .grupo-actions {
   display: flex;
   gap: var(--spacing-1);
+}
+
+.grupo-actions app-button,
+.tag-actions app-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tags-grid {

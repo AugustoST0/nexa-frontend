@@ -1,5 +1,5 @@
 export interface Grupo {
   id?: number;
-  nome: string;
-  descricao?: string;
+  name: string;
+  description?: string;
 }

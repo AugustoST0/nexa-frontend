@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule, Edit, Trash2, Plus } from 'lucide-angular';
 import { GrupoService } from '../../../core/services/crud/grupo-service';
 import { TagService } from '../../../core/services/crud/tag-service';
 import { AlertService } from '../../../core/services/alert-service';
@@ -13,7 +14,7 @@ import { BadgeComponent } from '../../ui/badge/badge';
 
 @Component({
   selector: 'app-catalogo',
-  imports: [CommonModule, ButtonComponent, CardComponent, BadgeComponent],
+  imports: [CommonModule, LucideAngularModule, ButtonComponent, CardComponent, BadgeComponent],
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +24,10 @@ export class Catalogo implements OnInit {
   private readonly tagService = inject(TagService);
   private readonly alertService = inject(AlertService);
   private readonly modalService = inject(ModalService);
+
+  readonly Edit = Edit;
+  readonly Trash2 = Trash2;
+  readonly Plus = Plus;
 
   grupos = signal<Grupo[]>([]);
   tags = signal<Tag[]>([]);
@@ -70,7 +75,7 @@ export class Catalogo implements OnInit {
       title: 'Novo Grupo',
       fields: [
         {
-          name: 'nome',
+          name: 'name',
           label: 'Nome',
           type: 'text',
           placeholder: 'Ex: Skills, Certificações, etc.',
@@ -78,7 +83,7 @@ export class Catalogo implements OnInit {
           maxLength: 100,
         },
         {
-          name: 'descricao',
+          name: 'description',
           label: 'Descrição',
           type: 'textarea',
           placeholder: 'Descrição opcional do grupo',
@@ -113,19 +118,19 @@ export class Catalogo implements OnInit {
       title: 'Editar Grupo',
       fields: [
         {
-          name: 'nome',
+          name: 'name',
           label: 'Nome',
           type: 'text',
-          value: grupo.nome,
+          value: grupo.name,
           placeholder: 'Ex: Skills, Certificações, etc.',
           required: true,
           maxLength: 100,
         },
         {
-          name: 'descricao',
+          name: 'description',
           label: 'Descrição',
           type: 'textarea',
-          value: grupo.descricao || '',
+          value: grupo.description || '',
           placeholder: 'Descrição opcional do grupo',
           rows: 3,
           maxLength: 500,
@@ -154,7 +159,7 @@ export class Catalogo implements OnInit {
   }
 
   onDeleteGrupo(grupo: Grupo) {
-    if (confirm(`Tem certeza que deseja excluir o grupo "${grupo.nome}"? Todas as tags associadas também serão excluídas.`)) {
+    if (confirm(`Tem certeza que deseja excluir o grupo "${grupo.name}"? Todas as tags associadas também serão excluídas.`)) {
       this.grupoService.delete(grupo.id!).subscribe({
         next: () => {
           this.alertService.success('Grupo excluído com sucesso');
@@ -182,7 +187,7 @@ export class Catalogo implements OnInit {
       title: 'Nova Tag',
       fields: [
         {
-          name: 'nome',
+          name: 'name',
           label: 'Nome',
           type: 'text',
           placeholder: 'Ex: Python, Java, Liderança, etc.',
@@ -190,7 +195,7 @@ export class Catalogo implements OnInit {
           maxLength: 100,
         },
         {
-          name: 'descricao',
+          name: 'description',
           label: 'Descrição',
           type: 'textarea',
           placeholder: 'Descrição opcional da tag',
@@ -207,7 +212,7 @@ export class Catalogo implements OnInit {
         if (data) {
           const tagData = {
             ...data,
-            grupoId: this.selectedGrupo()!.id,
+            groupId: this.selectedGrupo()!.id,
           };
 
           this.tagService.create(tagData).subscribe({
@@ -230,19 +235,19 @@ export class Catalogo implements OnInit {
       title: 'Editar Tag',
       fields: [
         {
-          name: 'nome',
+          name: 'name',
           label: 'Nome',
           type: 'text',
-          value: tag.nome,
+          value: tag.name,
           placeholder: 'Ex: Python, Java, Liderança, etc.',
           required: true,
           maxLength: 100,
         },
         {
-          name: 'descricao',
+          name: 'description',
           label: 'Descrição',
           type: 'textarea',
-          value: tag.descricao || '',
+          value: tag.description || '',
           placeholder: 'Descrição opcional da tag',
           rows: 3,
           maxLength: 500,
@@ -257,7 +262,7 @@ export class Catalogo implements OnInit {
         if (data) {
           const tagData = {
             ...data,
-            grupoId: tag.grupoId,
+            groupId: tag.groupId,
           };
 
           this.tagService.update(tag.id!, tagData).subscribe({
@@ -276,7 +281,7 @@ export class Catalogo implements OnInit {
   }
 
   onDeleteTag(tag: Tag) {
-    if (confirm(`Tem certeza que deseja excluir a tag "${tag.nome}"?`)) {
+    if (confirm(`Tem certeza que deseja excluir a tag "${tag.name}"?`)) {
       this.tagService.delete(tag.id!).subscribe({
         next: () => {
           this.alertService.success('Tag excluída com sucesso');
