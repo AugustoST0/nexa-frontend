@@ -41,8 +41,11 @@ export class FormModalComponent implements OnDestroy {
 
     config.fields.forEach((field) => {
       const validators = this.getValidators(field);
+      const value = field.value !== undefined && field.value !== null
+        ? field.value
+        : this.getDefaultValue(field);
       group[field.name] = this.fb.control(
-        { value: field.value || this.getDefaultValue(field), disabled: field.disabled || false },
+        { value: value, disabled: field.disabled || false },
         validators
       );
     });

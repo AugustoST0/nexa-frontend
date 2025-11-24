@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Edit, Trash2, Plus } from 'lucide-angular';
+import { LucideAngularModule, Edit, Trash2, Plus, Link, Unlink } from 'lucide-angular';
 import { GrupoService } from '../../../core/services/crud/grupo-service';
 import { TagService } from '../../../core/services/crud/tag-service';
 import { AlertService } from '../../../core/services/alert-service';
@@ -8,6 +8,8 @@ import { ModalService } from '../../../core/services/modal-service';
 import { Grupo } from '../../../core/model/Grupo.model';
 import { Tag } from '../../../core/model/Tag.model';
 import { FormModalConfig } from '../../../core/model/FormModalConfig.model';
+import { ListModalConfig } from '../../../core/model/ListModalConfig.model';
+import { FilterConfig } from '../../../core/model/FilterConfig.model';
 import { ButtonComponent } from '../../ui/button/button';
 import { CardComponent } from '../../ui/card/card';
 import { BadgeComponent } from '../../ui/badge/badge';
@@ -28,6 +30,8 @@ export class Catalogo implements OnInit {
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
   readonly Plus = Plus;
+  readonly Link = Link;
+  readonly Unlink = Unlink;
 
   grupos = signal<Grupo[]>([]);
   tags = signal<Tag[]>([]);
@@ -36,6 +40,7 @@ export class Catalogo implements OnInit {
 
   ngOnInit() {
     this.loadGrupos();
+    this.loadAllTags();
   }
 
   loadGrupos() {
@@ -53,6 +58,18 @@ export class Catalogo implements OnInit {
     });
   }
 
+  loadAllTags() {
+    this.tagService.getAll().subscribe({
+      next: (tags) => {
+        this.tags.set(tags);
+      },
+      error: (err) => {
+        this.alertService.error('Erro ao carregar tags');
+        console.error(err);
+      },
+    });
+  }
+
   loadTagsByGrupo(grupoId: number) {
     this.tagService.getByGrupoId(grupoId).subscribe({
       next: (tags) => {
@@ -66,8 +83,13 @@ export class Catalogo implements OnInit {
   }
 
   selectGrupo(grupo: Grupo) {
-    this.selectedGrupo.set(grupo);
-    this.loadTagsByGrupo(grupo.id!);
+    if (this.selectedGrupo()?.id === grupo.id) {
+      this.selectedGrupo.set(null);
+      this.loadAllTags();
+    } else {
+      this.selectedGrupo.set(grupo);
+      this.loadTagsByGrupo(grupo.id!);
+    }
   }
 
   onNewGrupo() {
@@ -75,7 +97,7 @@ export class Catalogo implements OnInit {
       title: 'Novo Grupo',
       fields: [
         {
-          name: 'name',
+          name: 'nome',
           label: 'Nome',
           type: 'text',
           placeholder: 'Ex: Skills, Certificações, etc.',
@@ -83,7 +105,7 @@ export class Catalogo implements OnInit {
           maxLength: 100,
         },
         {
-          name: 'description',
+          name: 'descricao',
           label: 'Descrição',
           type: 'textarea',
           placeholder: 'Descrição opcional do grupo',
@@ -118,19 +140,19 @@ export class Catalogo implements OnInit {
       title: 'Editar Grupo',
       fields: [
         {
-          name: 'name',
+          name: 'nome',
           label: 'Nome',
           type: 'text',
-          value: grupo.name,
+          value: grupo.nome,
           placeholder: 'Ex: Skills, Certificações, etc.',
           required: true,
           maxLength: 100,
         },
         {
-          name: 'description',
+          name: 'descricao',
           label: 'Descrição',
           type: 'textarea',
-          value: grupo.description || '',
+          value: grupo.descricao || '',
           placeholder: 'Descrição opcional do grupo',
           rows: 3,
           maxLength: 500,
@@ -159,43 +181,47 @@ export class Catalogo implements OnInit {
   }
 
   onDeleteGrupo(grupo: Grupo) {
-    if (confirm(`Tem certeza que deseja excluir o grupo "${grupo.name}"? Todas as tags associadas também serão excluídas.`)) {
-      this.grupoService.delete(grupo.id!).subscribe({
-        next: () => {
-          this.alertService.success('Grupo excluído com sucesso');
-          this.loadGrupos();
-          if (this.selectedGrupo()?.id === grupo.id) {
-            this.selectedGrupo.set(null);
-            this.tags.set([]);
-          }
-        },
-        error: (err) => {
-          this.alertService.error('Erro ao excluir grupo');
-          console.error(err);
-        },
-      });
-    }
+    this.modalService.showConfirm({
+      title: 'Excluir Grupo',
+      message: `Tem certeza que deseja excluir o grupo "${grupo.nome}"?`,
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+    }).subscribe({
+      next: (confirmed) => {
+        if (confirmed) {
+          this.grupoService.delete(grupo.id!).subscribe({
+            next: () => {
+              this.alertService.success('Grupo excluído com sucesso');
+              this.loadGrupos();
+              if (this.selectedGrupo()?.id === grupo.id) {
+                this.selectedGrupo.set(null);
+                this.loadAllTags();
+              }
+            },
+            error: (err) => {
+              this.alertService.error('Erro ao excluir grupo');
+              console.error(err);
+            },
+          });
+        }
+      },
+    });
   }
 
   onNewTag() {
-    if (!this.selectedGrupo()) {
-      this.alertService.warning('Selecione um grupo primeiro');
-      return;
-    }
-
     const config: FormModalConfig = {
       title: 'Nova Tag',
       fields: [
         {
-          name: 'name',
+          name: 'nome',
           label: 'Nome',
           type: 'text',
-          placeholder: 'Ex: Python, Java, Liderança, etc.',
+          placeholder: 'Ex: Mãe, Pet, Liderança, etc.',
           required: true,
           maxLength: 100,
         },
         {
-          name: 'description',
+          name: 'descricao',
           label: 'Descrição',
           type: 'textarea',
           placeholder: 'Descrição opcional da tag',
@@ -212,13 +238,17 @@ export class Catalogo implements OnInit {
         if (data) {
           const tagData = {
             ...data,
-            groupId: this.selectedGrupo()!.id,
+            grupoId: this.selectedGrupo()?.id,
           };
 
           this.tagService.create(tagData).subscribe({
             next: () => {
               this.alertService.success('Tag criada com sucesso');
-              this.loadTagsByGrupo(this.selectedGrupo()!.id!);
+              if (this.selectedGrupo()) {
+                this.loadTagsByGrupo(this.selectedGrupo()!.id!);
+              } else {
+                this.loadAllTags();
+              }
             },
             error: (err) => {
               this.alertService.error('Erro ao criar tag');
@@ -235,19 +265,19 @@ export class Catalogo implements OnInit {
       title: 'Editar Tag',
       fields: [
         {
-          name: 'name',
+          name: 'nome',
           label: 'Nome',
           type: 'text',
-          value: tag.name,
+          value: tag.nome,
           placeholder: 'Ex: Python, Java, Liderança, etc.',
           required: true,
           maxLength: 100,
         },
         {
-          name: 'description',
+          name: 'descricao',
           label: 'Descrição',
           type: 'textarea',
-          value: tag.description || '',
+          value: tag.descricao || '',
           placeholder: 'Descrição opcional da tag',
           rows: 3,
           maxLength: 500,
@@ -260,15 +290,14 @@ export class Catalogo implements OnInit {
     this.modalService.showForm(config).subscribe({
       next: (data) => {
         if (data) {
-          const tagData = {
-            ...data,
-            groupId: tag.groupId,
-          };
-
-          this.tagService.update(tag.id!, tagData).subscribe({
+          this.tagService.update(tag.id!, data).subscribe({
             next: () => {
               this.alertService.success('Tag atualizada com sucesso');
-              this.loadTagsByGrupo(this.selectedGrupo()!.id!);
+              if (this.selectedGrupo()) {
+                this.loadTagsByGrupo(this.selectedGrupo()!.id!);
+              } else {
+                this.loadAllTags();
+              }
             },
             error: (err) => {
               this.alertService.error('Erro ao atualizar tag');
@@ -281,17 +310,121 @@ export class Catalogo implements OnInit {
   }
 
   onDeleteTag(tag: Tag) {
-    if (confirm(`Tem certeza que deseja excluir a tag "${tag.name}"?`)) {
-      this.tagService.delete(tag.id!).subscribe({
-        next: () => {
-          this.alertService.success('Tag excluída com sucesso');
-          this.loadTagsByGrupo(this.selectedGrupo()!.id!);
-        },
-        error: (err) => {
-          this.alertService.error('Erro ao excluir tag');
-          console.error(err);
-        },
-      });
+    this.modalService.showConfirm({
+      title: 'Excluir Tag',
+      message: `Tem certeza que deseja excluir a tag "${tag.nome}"?`,
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+    }).subscribe({
+      next: (confirmed) => {
+        if (confirmed) {
+          this.tagService.delete(tag.id!).subscribe({
+            next: () => {
+              this.alertService.success('Tag excluída com sucesso');
+              this.loadAllTags();
+            },
+            error: (err) => {
+              this.alertService.error('Erro ao excluir tag');
+              console.error(err);
+            },
+          });
+        }
+      },
+    });
+  }
+
+  onUnlinkTag(tag: Tag) {
+    this.modalService.showConfirm({
+      title: 'Desassociar Tag',
+      message: `Tem certeza que deseja desassociar a tag "${tag.nome}" deste grupo?`,
+      confirmText: 'Desassociar',
+      cancelText: 'Cancelar',
+    }).subscribe({
+      next: (confirmed) => {
+        if (confirmed) {
+          const grupoId = this.selectedGrupo()!.id!;
+
+          this.tagService.unlinkFromGrupo(tag.id!, grupoId).subscribe({
+            next: () => {
+              this.alertService.success('Tag desassociada com sucesso');
+              this.loadTagsByGrupo(grupoId);
+            },
+            error: (err) => {
+              this.alertService.error('Erro ao desassociar tag');
+              console.error(err);
+            },
+          });
+        }
+      },
+    });
+  }
+
+  onAssociateExistingTag() {
+    if (!this.selectedGrupo()) {
+      this.alertService.warning('Selecione um grupo primeiro');
+      return;
     }
+
+    const grupoId = this.selectedGrupo()!.id!;
+
+    this.tagService.getNotInGrupoId(grupoId).subscribe({
+      next: (availableTags) => {
+        if (availableTags.length === 0) {
+          this.alertService.info('Não há tags disponíveis para associar a este grupo');
+          return;
+        }
+
+        const filters: FilterConfig[] = [
+          {
+            name: 'nome',
+            label: 'Nome',
+            type: 'text',
+            placeholder: 'Filtrar por nome...',
+          },
+        ];
+
+        const config: ListModalConfig = {
+          title: `Associar Tags ao Grupo "${this.selectedGrupo()!.nome}"`,
+          data: availableTags,
+          columns: [
+            { field: 'nome', label: 'Nome', width: '40%' },
+            { field: 'descricao', label: 'Descrição', width: '60%' },
+          ],
+          actions: [
+            {
+              label: 'Associar',
+              icon: Link,
+              variant: 'primary',
+              callback: (tag: Tag) => this.associateTag(tag),
+            },
+          ],
+          filters: filters,
+          emptyMessage: 'Nenhuma tag encontrada',
+          closeText: 'Fechar',
+        };
+
+        this.modalService.showList(config);
+      },
+      error: (err) => {
+        this.alertService.error('Erro ao carregar tags disponíveis');
+        console.error(err);
+      },
+    });
+  }
+
+  private associateTag(tag: Tag) {
+    const grupoId = this.selectedGrupo()!.id!;
+
+    this.tagService.linkToGrupo(tag.id!, grupoId).subscribe({
+      next: () => {
+        this.alertService.success(`Tag "${tag.nome}" associada com sucesso`);
+        this.loadTagsByGrupo(grupoId);
+        this.modalService.closeListModal();
+      },
+      error: (err) => {
+        this.alertService.error('Erro ao associar tag');
+        console.error(err);
+      },
+    });
   }
 }
