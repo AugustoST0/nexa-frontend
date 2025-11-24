@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth-service';
 import { AlertService } from '../../../core/services/alert-service';
-import { take } from 'rxjs';
+import { finalize, take } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../../ui/button/button';
 import { InputComponent } from '../../ui/input/input';
@@ -15,7 +15,6 @@ import { CardComponent } from '../../ui/card/card';
   imports: [ReactiveFormsModule, CommonModule, ButtonComponent, InputComponent, FormFieldComponent, CardComponent],
   templateUrl: './login.html',
   styleUrl: './login.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Login implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -29,7 +28,7 @@ export class Login implements OnInit {
   constructor() {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(5)]],
+      password: ['', [Validators.required]],
     });
   }
 
@@ -51,26 +50,31 @@ export class Login implements OnInit {
     }
 
     this.isSubmitting = true;
-    this.authService.login(this.loginForm.value).subscribe({
-      next: () => {
-        this.alertService.success('Login efetivado com sucesso.');
-        this.router.navigate(['/catalogo']);
-      },
-      error: (err) => {
+    this.authService.login(this.loginForm.value)
+      .pipe(finalize(() => {
         this.isSubmitting = false;
-        if (err.status === 401) {
-          const code = err.error?.code;
+      }))
+      .subscribe({
+        next: () => {
+          this.alertService.success('Login efetivado com sucesso.');
+          this.router.navigate(['/catalogo']);
+        },
+        error: (err) => {
+          if (err.status === 401) {
+            const code = err.error?.code;
 
-          if (code === 'USER_NOT_FOUND') {
-            this.alertService.error('E-mail não encontrado');
-          } else if (code === 'INVALID_CREDENTIALS') {
-            this.alertService.error('Senha incorreta');
+            if (code === 'USER_NOT_FOUND') {
+              this.alertService.error('E-mail não encontrado');
+            } else if (code === 'INVALID_CREDENTIALS') {
+              this.alertService.error('Senha incorreta');
+            } else {
+              this.alertService.error('Credenciais inválidas');
+            }
           } else {
-            this.alertService.error('Erro inesperado.');
+            this.alertService.error('Erro ao realizar login');
           }
         }
-      },
-    });
+      });
   }
 
   getErrorMessage(controlName: string): string {

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, take } from 'rxjs';
 import { FormModalConfig } from '../model/FormModalConfig.model';
 import { ConfirmModalConfig } from '../model/ConfirmModalConfig.model';
+import { ListModalConfig } from '../model/ListModalConfig.model';
 
 @Injectable({
   providedIn: 'root',
@@ -13,25 +14,38 @@ export class ModalService {
   private formModalSubject = new Subject<FormModalConfig | null>();
   private formResponseSubject = new Subject<any>();
 
+  private listModalSubject = new Subject<ListModalConfig | null>();
+
   confirmModal$ = this.confirmModalSubject.asObservable();
   confirmResponse$ = this.confirmResponseSubject.asObservable();
 
   formModal$ = this.formModalSubject.asObservable();
   formResponse$ = this.formResponseSubject.asObservable();
 
+  listModal$ = this.listModalSubject.asObservable();
+
   showConfirm(config: ConfirmModalConfig): Observable<boolean> {
     this.confirmModalSubject.next(config);
-    return this.confirmResponse$;
+    return this.confirmResponse$.pipe(take(1));
   }
 
   showForm(config: FormModalConfig): Observable<any> {
     this.formModalSubject.next(config);
-    return this.formResponse$;
+    return this.formResponse$.pipe(take(1));
+  }
+
+  showList(config: ListModalConfig): void {
+    this.listModalSubject.next(config);
+  }
+
+  closeListModal(): void {
+    this.listModalSubject.next(null);
   }
 
   close() {
     this.confirmModalSubject.next(null);
     this.formModalSubject.next(null);
+    this.listModalSubject.next(null);
   }
 
   confirm() {

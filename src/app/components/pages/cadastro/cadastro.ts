@@ -13,13 +13,13 @@ import { ButtonComponent } from '../../ui/button/button';
 import { InputComponent } from '../../ui/input/input';
 import { FormFieldComponent } from '../../ui/form-field/form-field';
 import { CardComponent } from '../../ui/card/card';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-cadastro',
   imports: [ReactiveFormsModule, CommonModule, ButtonComponent, InputComponent, FormFieldComponent, CardComponent],
   templateUrl: './cadastro.html',
   styleUrls: ['./cadastro.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Cadastro implements OnInit {
   private readonly userService = inject(UserService);
@@ -65,22 +65,24 @@ export class Cadastro implements OnInit {
     };
 
     this.isSubmitting = true;
-    this.userService.register(payload).subscribe({
-      next: () => {
-        this.alertService.success('Usuário cadastrado com sucesso.');
-        this.registerForm.reset({ admin: false });
+    this.userService.register(payload)
+      .pipe(finalize(() => {
         this.isSubmitting = false;
-      },
-      error: (err) => {
-        this.isSubmitting = false;
-        if (err.status === 409 && err.error.code === 'EMAIL_ALREADY_EXISTS') {
-          this.alertService.error('E-mail já está sendo utilizado.');
-        } else {
-          this.alertService.error('Erro ao registrar usuário.');
-        }
-        console.error(err);
-      },
-    });
+      }))
+      .subscribe({
+        next: () => {
+          this.alertService.success('Usuário cadastrado com sucesso.');
+          this.registerForm.reset({ admin: false });
+        },
+        error: (err) => {
+          if (err.status === 409 && err.error.code === 'EMAIL_ALREADY_EXISTS') {
+            this.alertService.error('E-mail já está sendo utilizado.');
+          } else {
+            this.alertService.error('Erro ao registrar usuário.');
+          }
+          console.error(err);
+        },
+      });
   }
 
   getErrorMessage(controlName: string): string {

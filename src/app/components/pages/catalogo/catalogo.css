@@ -47,6 +47,17 @@
   gap: var(--spacing-2);
 }
 
+.panel-actions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.panel-actions app-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
 .panel-header h2 {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
