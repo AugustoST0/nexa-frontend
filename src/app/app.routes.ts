@@ -5,6 +5,7 @@ import { ColaboradorList } from './components/pages/colaborador-list/colaborador
 import { ColaboradorForm } from './components/pages/colaborador-form/colaborador-form';
 import { Catalogo } from './components/pages/catalogo/catalogo';
 import { Layout } from './components/shared/layout/layout';
+import { AuthGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
     { path: 'login', component: Login },
@@ -12,12 +13,12 @@ export const routes: Routes = [
     {
         path: '',
         component: Layout,
+        canActivate: [AuthGuard],
         children: [
             { path: 'colaboradores', component: ColaboradorList },
             { path: 'colaboradores/novo', component: ColaboradorForm },
             { path: 'colaboradores/editar/:id', component: ColaboradorForm },
             { path: 'catalogo', component: Catalogo },
-            { path: '', redirectTo: '/catalogo', pathMatch: 'full' },
         ]
     },
     { path: '**', redirectTo: '/login' }

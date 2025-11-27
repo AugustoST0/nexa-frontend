@@ -45,6 +45,38 @@
 
           <div class="form-row">
             <app-form-field
+              label="Matrícula"
+              [required]="true"
+              htmlFor="matricula"
+              [error]="getErrorMessage('matricula')"
+            >
+              <app-input
+                id="matricula"
+                type="text"
+                formControlName="matricula"
+                placeholder="Ex: 12345"
+                [error]="hasError('matricula')"
+              ></app-input>
+            </app-form-field>
+
+            <app-form-field
+              label="CPF"
+              [required]="true"
+              htmlFor="cpf"
+              [error]="getErrorMessage('cpf')"
+            >
+              <app-input
+                id="cpf"
+                type="text"
+                formControlName="cpf"
+                placeholder="000.000.000-00"
+                [error]="hasError('cpf')"
+              ></app-input>
+            </app-form-field>
+          </div>
+
+          <div class="form-row">
+            <app-form-field
               label="Data de Nascimento"
               [required]="true"
               htmlFor="dataNascimento"

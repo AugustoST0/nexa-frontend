@@ -57,6 +57,8 @@ export class ColaboradorForm implements OnInit {
     this.colaboradorForm = this.fb.group({
       nome: ['', [Validators.required, Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
+      matricula: ['', [Validators.required, Validators.maxLength(50)]],
+      cpf: ['', [Validators.required, Validators.pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)]],
       cargo: ['', [Validators.required, Validators.maxLength(100)]],
       departamento: ['', [Validators.required, Validators.maxLength(100)]],
       dataNascimento: ['', Validators.required],
@@ -95,6 +97,8 @@ export class ColaboradorForm implements OnInit {
         this.colaboradorForm.patchValue({
           nome: colaborador.nome,
           email: colaborador.email,
+          matricula: colaborador.matricula,
+          cpf: colaborador.cpf,
           cargo: colaborador.cargo,
           departamento: colaborador.departamento,
           dataNascimento: colaborador.dataNascimento,
@@ -187,6 +191,7 @@ export class ColaboradorForm implements OnInit {
 
     if (control.errors['required']) return 'Campo obrigatório';
     if (control.errors['email']) return 'Email inválido';
+    if (control.errors['pattern'] && controlName === 'cpf') return 'CPF inválido (formato: 000.000.000-00)';
     if (control.errors['maxlength']) {
       return `Máximo de ${control.errors['maxlength'].requiredLength} caracteres`;
     }

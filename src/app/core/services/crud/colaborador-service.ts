@@ -35,12 +35,4 @@ export class ColaboradorService {
   delete(id: number): Observable<void> {
     return this.httpService.delete<void>(COLABORADOR_ENDPOINTS.DELETE(id));
   }
-
-  toggleStatus(id: number): Observable<Colaborador> {
-    return this.httpService.patch<Colaborador>(COLABORADOR_ENDPOINTS.TOGGLE_STATUS(id), {});
-  }
-
-  getSubordinados(supervisorId: number): Observable<ColaboradorWithCalcs[]> {
-    return this.httpService.get<ColaboradorWithCalcs[]>(`${COLABORADOR_ENDPOINTS.GET_ALL}/supervisor/${supervisorId}`);
-  }
 }

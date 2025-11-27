@@ -46,8 +46,10 @@ export const TAG_ENDPOINTS = {
 export const COLABORADOR_ENDPOINTS = {
     GET_ALL: API_ROUTES.COLABORADORES,
     GET_BY_ID: (id: number) => `${API_ROUTES.COLABORADORES}/${id}`,
+    GET_SUPERVISORES: `${API_ROUTES.COLABORADORES}/supervisores`,
+    GET_BY_TAG: (idTag: number) => `${API_ROUTES.COLABORADORES}/tag/${idTag}`,
+    SEARCH_BY_NAME: (nome: string) => `${API_ROUTES.COLABORADORES}/search?nome=${nome}`,
     CREATE: API_ROUTES.COLABORADORES,
     UPDATE: (id: number) => `${API_ROUTES.COLABORADORES}/${id}`,
     DELETE: (id: number) => `${API_ROUTES.COLABORADORES}/${id}`,
-    TOGGLE_STATUS: (id: number) => `${API_ROUTES.COLABORADORES}/${id}/toggle-status`,
 } as const;
