@@ -142,18 +142,6 @@
           </div>
 
           <div class="form-row">
-            <app-form-field
-              label="Supervisor"
-              htmlFor="supervisorId"
-            >
-              <select id="supervisorId" formControlName="supervisorId" class="select-field">
-                <option [value]="null">Sem supervisor</option>
-                @for (supervisor of supervisores(); track supervisor.id) {
-                  <option [value]="supervisor.id">{{ supervisor.nome }}</option>
-                }
-              </select>
-            </app-form-field>
-
             @if (isEditMode()) {
               <div class="checkbox-container">
                 <label class="checkbox-label">

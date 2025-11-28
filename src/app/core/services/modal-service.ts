@@ -3,6 +3,7 @@ import { Subject, Observable, take } from 'rxjs';
 import { FormModalConfig } from '../model/FormModalConfig.model';
 import { ConfirmModalConfig } from '../model/ConfirmModalConfig.model';
 import { ListModalConfig } from '../model/ListModalConfig.model';
+import { DetailModalConfig } from '../model/DetailModalConfig.model';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +16,7 @@ export class ModalService {
   private formResponseSubject = new Subject<any>();
 
   private listModalSubject = new Subject<ListModalConfig | null>();
+  private detailModalSubject = new Subject<DetailModalConfig | null>();
 
   confirmModal$ = this.confirmModalSubject.asObservable();
   confirmResponse$ = this.confirmResponseSubject.asObservable();
@@ -23,6 +25,7 @@ export class ModalService {
   formResponse$ = this.formResponseSubject.asObservable();
 
   listModal$ = this.listModalSubject.asObservable();
+  detailModal$ = this.detailModalSubject.asObservable();
 
   showConfirm(config: ConfirmModalConfig): Observable<boolean> {
     this.confirmModalSubject.next(config);
@@ -42,10 +45,19 @@ export class ModalService {
     this.listModalSubject.next(null);
   }
 
+  showDetail(config: DetailModalConfig): void {
+    this.detailModalSubject.next(config);
+  }
+
+  closeDetailModal(): void {
+    this.detailModalSubject.next(null);
+  }
+
   close() {
     this.confirmModalSubject.next(null);
     this.formModalSubject.next(null);
     this.listModalSubject.next(null);
+    this.detailModalSubject.next(null);
   }
 
   confirm() {

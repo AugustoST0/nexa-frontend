@@ -24,12 +24,9 @@
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Email</th>
+              <th>Matrícula</th>
               <th>Cargo</th>
               <th>Departamento</th>
-              <th>Idade</th>
-              <th>Tempo Empresa</th>
-              <th>Status</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -37,19 +34,9 @@
             @for (colaborador of colaboradores(); track colaborador.id) {
               <tr>
                 <td>{{ colaborador.nome }}</td>
-                <td>{{ colaborador.email }}</td>
+                <td>{{ colaborador.matricula }}</td>
                 <td>{{ colaborador.cargo }}</td>
                 <td>{{ colaborador.departamento }}</td>
-                <td>{{ colaborador.idade }}</td>
-                <td>{{ colaborador.tempoEmpresa }}</td>
-                <td>
-                  <app-badge
-                    [variant]="colaborador.ativo ? 'success' : 'danger'"
-                    size="sm"
-                  >
-                    {{ colaborador.ativo ? 'Ativo' : 'Inativo' }}
-                  </app-badge>
-                </td>
                 <td class="actions">
                   <app-button
                     variant="ghost"
@@ -57,7 +44,7 @@
                     (clicked)="onView(colaborador.id!)"
                     title="Visualizar"
                   >
-                    👁️
+                    <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
                   </app-button>
                   <app-button
                     variant="ghost"
@@ -65,7 +52,7 @@
                     (clicked)="onEdit(colaborador.id!)"
                     title="Editar"
                   >
-                    ✏️
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
                   </app-button>
                   <app-button
                     variant="ghost"
@@ -73,7 +60,7 @@
                     (clicked)="onDelete(colaborador.id!, colaborador.nome)"
                     title="Excluir"
                   >
-                    🗑️
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
                   </app-button>
                 </td>
               </tr>

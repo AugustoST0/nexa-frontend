@@ -19,8 +19,7 @@ import { BadgeComponent } from '../../ui/badge/badge';
   selector: 'app-colaborador-form',
   imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonComponent, InputComponent, FormFieldComponent, CardComponent, BadgeComponent],
   templateUrl: './colaborador-form.html',
-  styleUrl: './colaborador-form.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./colaborador-form.css'],
 })
 export class ColaboradorForm implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -36,12 +35,10 @@ export class ColaboradorForm implements OnInit {
   loading = signal(false);
   availableTags = signal<Tag[]>([]);
   selectedTags = signal<number[]>([]);
-  supervisores = signal<ColaboradorWithCalcs[]>([]);
 
   ngOnInit() {
     this.initializeForm();
     this.loadTags();
-    this.loadSupervisores();
 
     this.route.params.subscribe(params => {
       const id = params['id'];
@@ -75,17 +72,6 @@ export class ColaboradorForm implements OnInit {
       },
       error: (err) => {
         console.error('Erro ao carregar tags:', err);
-      },
-    });
-  }
-
-  loadSupervisores() {
-    this.colaboradorService.getAll().subscribe({
-      next: (colaboradores) => {
-        this.supervisores.set(colaboradores);
-      },
-      error: (err) => {
-        console.error('Erro ao carregar supervisores:', err);
       },
     });
   }

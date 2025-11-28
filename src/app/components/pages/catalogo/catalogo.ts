@@ -186,6 +186,7 @@ export class Catalogo implements OnInit {
       message: `Tem certeza que deseja excluir o grupo "${grupo.nome}"?`,
       confirmText: 'Excluir',
       cancelText: 'Cancelar',
+      type: 'danger'
     }).subscribe({
       next: (confirmed) => {
         if (confirmed) {
@@ -315,6 +316,7 @@ export class Catalogo implements OnInit {
       message: `Tem certeza que deseja excluir a tag "${tag.nome}"?`,
       confirmText: 'Excluir',
       cancelText: 'Cancelar',
+      type: 'danger',
     }).subscribe({
       next: (confirmed) => {
         if (confirmed) {

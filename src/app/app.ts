@@ -5,12 +5,13 @@ import { SpinnerComponent } from './components/shared/spinner/spinner';
 import { ConfirmModalComponent } from './components/shared/confirm-modal/confirm-modal';
 import { FormModalComponent } from './components/shared/form-modal/form-modal';
 import { ListModalComponent } from './components/shared/list-modal/list-modal';
+import { DetailModalComponent } from './components/shared/detail-modal/detail-modal';
 import { ActivityMonitorService } from './core/services/activity-monitor-service';
 import { LocalStorageService } from './core/services/local-storage-service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Alert, SpinnerComponent, ConfirmModalComponent, FormModalComponent, ListModalComponent],
+  imports: [RouterOutlet, Alert, SpinnerComponent, ConfirmModalComponent, FormModalComponent, ListModalComponent, DetailModalComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
