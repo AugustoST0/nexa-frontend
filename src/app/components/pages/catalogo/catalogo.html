@@ -1,0 +1,115 @@
+<div class="catalogo-container">
+  <div class="header">
+    <h1>Catálogo de Grupos e Tags</h1>
+    <p class="subtitle">Gerencie grupos e suas tags (skills, categorias, etc.)</p>
+  </div>
+
+  <div class="catalogo-layout">
+    <!-- Coluna de Tags (em cima) -->
+    <app-card variant="elevated" class="panel">
+      <div class="panel-header">
+        <h2>Tags</h2>
+        <div class="panel-actions">
+          @if (selectedGrupo()) {
+            <app-button variant="secondary" size="sm" (clicked)="onAssociateExistingTag()">
+              <lucide-icon [img]="Link" [size]="16"></lucide-icon>
+              <span>Associar Tag</span>
+            </app-button>
+          }
+          <app-button variant="primary" size="sm" (clicked)="onNewTag()">
+            <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+            <span>Nova Tag</span>
+          </app-button>
+        </div>
+      </div>
+
+      @if (tags().length === 0) {
+        <div class="empty-state">
+          @if (selectedGrupo()) {
+            <p>Nenhuma tag no grupo "{{ selectedGrupo()!.nome }}"</p>
+          } @else {
+            <p>Nenhuma tag cadastrada</p>
+          }
+        </div>
+      } @else {
+        <div class="tags-grid">
+          @for (tag of tags(); track tag.id) {
+            <app-card variant="bordered" [hoverable]="true" class="tag-card">
+              <div class="tag-header">
+                <app-badge variant="primary" size="md">{{ tag.nome }}</app-badge>
+                <div class="tag-actions">
+                  <app-button variant="ghost" size="sm" (clicked)="onEditTag(tag)" title="Editar">
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+                  </app-button>
+                  @if (selectedGrupo()) {
+                    <app-button variant="ghost" size="sm" (clicked)="onUnlinkTag(tag)" title="Desassociar">
+                      <lucide-icon [img]="Unlink" [size]="16"></lucide-icon>
+                    </app-button>
+                  } @else {
+                    <app-button variant="ghost" size="sm" (clicked)="onDeleteTag(tag)" title="Excluir">
+                      <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                    </app-button>
+                  }
+                </div>
+              </div>
+              @if (tag.descricao) {
+                <p class="tag-description">{{ tag.descricao }}</p>
+              }
+            </app-card>
+          }
+        </div>
+      }
+    </app-card>
+
+    <!-- Coluna de Grupos (em baixo) -->
+    <app-card variant="elevated" class="panel">
+      <div class="panel-header">
+        <h2>Grupos</h2>
+        <app-button variant="primary" size="sm" (clicked)="onNewGrupo()">
+          <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+          <span>Novo Grupo</span>
+        </app-button>
+      </div>
+
+      @if (loading()) {
+        <div class="loading">Carregando...</div>
+      } @else if (grupos().length === 0) {
+        <div class="empty-state">
+          <p>Nenhum grupo cadastrado</p>
+          <app-button variant="primary" (clicked)="onNewGrupo()">
+            Criar Primeiro Grupo
+          </app-button>
+        </div>
+      } @else {
+        <div class="grupos-list">
+          @for (grupo of grupos(); track grupo.id) {
+            <app-card
+              [variant]="selectedGrupo()?.id === grupo.id ? 'bordered' : 'default'"
+              [hoverable]="true"
+              class="grupo-item"
+              [class.grupo-selected]="selectedGrupo()?.id === grupo.id"
+              (click)="selectGrupo(grupo)"
+            >
+              <div class="grupo-content">
+                <div class="grupo-info">
+                  <h3>{{ grupo.nome }}</h3>
+                  @if (grupo.descricao) {
+                    <p>{{ grupo.descricao }}</p>
+                  }
+                </div>
+                <div class="grupo-actions">
+                  <app-button variant="ghost" size="sm" (clicked)="onEditGrupo(grupo); $event.stopPropagation()" title="Editar">
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+                  </app-button>
+                  <app-button variant="ghost" size="sm" (clicked)="onDeleteGrupo(grupo); $event.stopPropagation()" title="Excluir">
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                  </app-button>
+                </div>
+              </div>
+            </app-card>
+          }
+        </div>
+      }
+    </app-card>
+  </div>
+</div>

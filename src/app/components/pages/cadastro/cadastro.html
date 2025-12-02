@@ -1,0 +1,82 @@
+<div class="register-container">
+    <app-card variant="elevated">
+        <h1 class="register-title">Criar usuário - <span class="logo">NEXA</span></h1>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <app-form-field
+                label="Nome"
+                [required]="true"
+                htmlFor="name"
+                [error]="getErrorMessage('name')"
+            >
+                <app-input
+                    id="name"
+                    type="text"
+                    formControlName="name"
+                    placeholder="Seu nome completo"
+                    [error]="hasError('name')"
+                ></app-input>
+            </app-form-field>
+
+            <app-form-field
+                label="Email"
+                [required]="true"
+                htmlFor="email"
+                [error]="getErrorMessage('email')"
+            >
+                <app-input
+                    id="email"
+                    type="email"
+                    formControlName="email"
+                    placeholder="seu@email.com"
+                    [error]="hasError('email')"
+                ></app-input>
+            </app-form-field>
+
+            <app-form-field
+                label="Senha"
+                [required]="true"
+                htmlFor="password"
+                [error]="getErrorMessage('password')"
+                hint="Mínimo de 5 caracteres"
+            >
+                <app-input
+                    id="password"
+                    type="password"
+                    formControlName="password"
+                    placeholder="Mínimo 5 caracteres"
+                    [error]="hasError('password')"
+                ></app-input>
+            </app-form-field>
+
+            <app-form-field
+                label="Confirmar Senha"
+                [required]="true"
+                htmlFor="confirmPassword"
+                [error]="getErrorMessage('confirmPassword')"
+            >
+                <app-input
+                    id="confirmPassword"
+                    type="password"
+                    formControlName="confirmPassword"
+                    placeholder="Confirme sua senha"
+                    [error]="hasError('confirmPassword')"
+                ></app-input>
+            </app-form-field>
+
+            <div class="checkbox-field">
+                <input type="checkbox" id="admin" formControlName="admin" />
+                <label for="admin">Administrador</label>
+            </div>
+
+            <app-button
+                type="submit"
+                variant="primary"
+                size="lg"
+                [fullWidth]="true"
+                [loading]="isSubmitting"
+            >
+                Criar Novo Usuário
+            </app-button>
+        </form>
+    </app-card>
+</div>

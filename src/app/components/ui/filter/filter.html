@@ -1,0 +1,56 @@
+<div class="filter-container">
+  <label class="filter-label">{{ config.label }}</label>
+
+  @switch (config.type) {
+    @case ('text') {
+      <input
+        type="text"
+        class="filter-input"
+        [placeholder]="config.placeholder || ''"
+        [(ngModel)]="filterValue"
+        (ngModelChange)="onValueChange($event)"
+      />
+    }
+    @case ('number') {
+      <input
+        type="number"
+        class="filter-input"
+        [placeholder]="config.placeholder || ''"
+        [min]="config.min!"
+        [max]="config.max!"
+        [(ngModel)]="filterValue"
+        (ngModelChange)="onValueChange($event)"
+      />
+    }
+    @case ('select') {
+      <select
+        class="filter-select"
+        [(ngModel)]="filterValue"
+        (ngModelChange)="onValueChange($event)"
+      >
+        <option value="">Todos</option>
+        @for (option of config.options; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    }
+    @case ('date') {
+      <input
+        type="date"
+        class="filter-input"
+        [(ngModel)]="filterValue"
+        (ngModelChange)="onValueChange($event)"
+      />
+    }
+    @case ('boolean') {
+      <label class="filter-checkbox">
+        <input
+          type="checkbox"
+          [(ngModel)]="filterValue"
+          (ngModelChange)="onValueChange($event)"
+        />
+        <span>{{ config.placeholder || 'Ativo' }}</span>
+      </label>
+    }
+  }
+</div>

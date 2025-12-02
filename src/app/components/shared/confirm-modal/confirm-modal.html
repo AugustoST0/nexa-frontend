@@ -1,0 +1,22 @@
+@if(modalService.confirmModal$ | async; as config) {
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+  <div class="modal-container" [ngClass]="'modal-' + (config.type || 'info')">
+    <div class="modal-header">
+      <h2>{{ config.title }}</h2>
+    </div>
+
+    <div class="modal-body">
+      <p>{{ config.message }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" (click)="onCancel()">
+        {{ config.cancelText || 'Cancelar' }}
+      </button>
+      <button type="button" class="btn btn-confirm" [ngClass]="'btn-' + (config.type || 'info')" (click)="onConfirm()">
+        {{ config.confirmText || 'Confirmar' }}
+      </button>
+    </div>
+  </div>
+</div>
+}

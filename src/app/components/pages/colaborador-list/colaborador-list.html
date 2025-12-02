@@ -1,0 +1,86 @@
+<div class="colaborador-list-container">
+  <div class="header">
+    <h1>Colaboradores</h1>
+    <app-button variant="primary" size="md" (clicked)="onNew()">
+      + Novo Colaborador
+    </app-button>
+  </div>
+
+  <!-- Filter Component -->
+  <div class="filter-section">
+    <app-colaborador-filter></app-colaborador-filter>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Carregando...</div>
+  } @else if (colaboradores().length === 0) {
+    <app-card variant="bordered" class="empty-state-card">
+      <div class="empty-state">
+        <p>Nenhum colaborador cadastrado</p>
+        <app-button variant="primary" size="lg" (clicked)="onNew()">
+          Cadastrar Primeiro Colaborador
+        </app-button>
+      </div>
+    </app-card>
+  } @else {
+    <app-card variant="elevated" class="table-card">
+      <div class="table-container">
+        <table class="colaboradores-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Matrícula</th>
+              <th>Cargo</th>
+              <th>Departamento</th>
+              <th>Supervisor</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (colaborador of colaboradores(); track colaborador.id) {
+              <tr>
+                <td>{{ colaborador.nome }}</td>
+                <td>{{ colaborador.matricula }}</td>
+                <td>{{ colaborador.cargo }}</td>
+                <td>{{ colaborador.departamento }}</td>
+                <td>
+                  @if (colaborador.supervisor) {
+                    {{ colaborador.supervisor.nome }}
+                  } @else {
+                    <span class="no-supervisor">Sem supervisor</span>
+                  }
+                </td>
+                <td class="actions">
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="onView(colaborador.id!)"
+                    title="Visualizar"
+                  >
+                    <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
+                  </app-button>
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="onEdit(colaborador.id!)"
+                    title="Editar"
+                  >
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+                  </app-button>
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="onDelete(colaborador.id!, colaborador.nome)"
+                    title="Excluir"
+                  >
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                  </app-button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </app-card>
+  }
+</div>

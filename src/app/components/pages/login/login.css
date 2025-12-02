@@ -1,0 +1,24 @@
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+}
+
+.login-container app-card {
+    width: 100%;
+    max-width: 400px;
+}
+
+.logo {
+    text-align: center;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    letter-spacing: 0.05em;
+}

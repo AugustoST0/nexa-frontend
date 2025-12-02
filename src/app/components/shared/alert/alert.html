@@ -1,0 +1,17 @@
+<div class="alert-container">
+    @for (alert of alerts; track alert.id) {
+    <div [class]="getAlertClass(alert.type)" class="alerta">
+
+        <div class="alert-content">
+            @if (alert.title) {
+            <h5 class="alert-heading">{{ alert.title }}</h5>
+            }
+            <span>{{ alert.message }}</span>
+        </div>
+
+        <button type="button" class="btn-close" (click)="close(alert.id)" aria-label="Close">
+            ×
+        </button>
+    </div>
+    }
+</div>
