@@ -1,0 +1,57 @@
+<div class="colaborador-filter">
+  <!-- Mode selector -->
+  <div class="mode-selector">
+    <button
+      [class.active]="searchMode === 'common'"
+      (click)="switchMode('common')"
+      class="mode-button"
+    >
+      Busca Comum
+    </button>
+    <button
+      [class.active]="searchMode === 'advanced'"
+      (click)="switchMode('advanced')"
+      class="mode-button"
+    >
+      Busca Avançada
+    </button>
+  </div>
+
+  <!-- Common search mode -->
+  @if (searchMode === 'common') {
+    <div class="search-container">
+      <app-common-search
+        [searchData]="commonSearchData"
+        (search)="onCommonSearch($event)"
+        (clear)="onCommonClear()"
+      ></app-common-search>
+    </div>
+  }
+
+  <!-- Advanced search mode -->
+  @if (searchMode === 'advanced') {
+    <div class="search-container">
+      <app-advanced-search
+        [tokens]="advancedTokens"
+        (tokensChange)="onTokensChange($event)"
+        (search)="onAdvancedSearch($event)"
+        (clear)="onAdvancedClear()"
+      ></app-advanced-search>
+    </div>
+  }
+
+  <!-- Loading indicator -->
+  @if (loading) {
+    <div class="loading-indicator">
+      <div class="spinner"></div>
+      Carregando...
+    </div>
+  }
+
+  <!-- Results table -->
+  <app-results-table
+    [resultados]="resultados"
+    [loading]="loading"
+    [mensagem]="mensagem"
+  ></app-results-table>
+</div>

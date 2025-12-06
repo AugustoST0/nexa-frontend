@@ -1,0 +1,217 @@
+@if(config) {
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+  <div class="modal-container" [style.max-width]="config.width || '600px'">
+    <div class="modal-header">
+      <h2>{{ config.title }}</h2>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-body">
+        @for(field of config.fields; track field.name) {
+          <div class="form-field">
+            <label [for]="field.name">
+              {{ field.label }}
+              @if(field.required) {
+                <span class="required">*</span>
+              }
+            </label>
+
+            @switch(field.type) {
+              @case('textarea') {
+                <textarea
+                  [id]="field.name"
+                  [formControlName]="field.name"
+                  [placeholder]="field.placeholder || ''"
+                  [rows]="field.rows || 4"
+                  [cols]="field.cols"
+                  [class.error]="form.get(field.name)?.invalid && form.get(field.name)?.touched"
+                ></textarea>
+              }
+
+              @case('select') {
+                <select
+                  [id]="field.name"
+                  [formControlName]="field.name"
+                  [class.error]="form.get(field.name)?.invalid && form.get(field.name)?.touched"
+                >
+                  <option value="">Selecione...</option>
+                  @for(option of field.options; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              }
+
+              @case('multi-select') {
+                <select
+                  [id]="field.name"
+                  [formControlName]="field.name"
+                  multiple
+                  [class.error]="form.get(field.name)?.invalid && form.get(field.name)?.touched"
+                >
+                  @for(option of field.options; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              }
+
+              @case('tag-selector') {
+                <div class="tag-selector-wrapper">
+                  <div class="tag-selector-input-group">
+                    <input
+                      type="text"
+                      [value]="tagSelectorSearch()[field.name] || ''"
+                      (input)="onTagSelectorSearchChange(field.name, $event.target.value)"
+                      [placeholder]="field.placeholder || 'Buscar tags...'"
+                      class="tag-selector-search-input"
+                      readonly
+                    />
+                    <button
+                      type="button"
+                      (click)="toggleTagSelectorDropdown(field.name); $event.stopPropagation()"
+                      class="tag-selector-toggle-btn"
+                    >
+                      ▼
+                    </button>
+                  </div>
+
+                  @if (tagSelectorDropdownOpen()[field.name]) {
+                    <div class="tag-selector-modal-overlay" (click)="closeTagSelectorDropdown(field.name)">
+                      <div class="tag-selector-modal" (click)="$event.stopPropagation()">
+                        <div class="tag-selector-modal-header">
+                          <h3>Selecionar Tags</h3>
+                          <button
+                            type="button"
+                            class="tag-selector-modal-close"
+                            (click)="closeTagSelectorDropdown(field.name)"
+                          >
+                            ✕
+                          </button>
+                        </div>
+
+                        <div class="tag-selector-modal-search">
+                          <input
+                            type="text"
+                            [value]="tagSelectorSearch()[field.name] || ''"
+                            (input)="onTagSelectorSearchChange(field.name, $event.target.value)"
+                            placeholder="Buscar tags..."
+                            class="tag-selector-modal-search-input"
+                            autofocus
+                          />
+                        </div>
+
+                        <div class="tag-selector-modal-content">
+                          @for (option of getFilteredTagSelectorOptions(field); track option.value) {
+                            <button
+                              type="button"
+                              class="tag-selector-modal-item"
+                              [class.selected]="isTagSelectorOptionSelected(field.name, option.value)"
+                              (click)="toggleTagSelectorOption(field.name, option.value)"
+                            >
+                              <span class="tag-selector-modal-checkbox">
+                                @if (isTagSelectorOptionSelected(field.name, option.value)) {
+                                  ✓
+                                }
+                              </span>
+                              <span class="tag-selector-modal-item-label">{{ option.label }}</span>
+                            </button>
+                          }
+                          @if (getFilteredTagSelectorOptions(field).length === 0) {
+                            <div class="tag-selector-modal-empty">Nenhuma tag encontrada</div>
+                          }
+                        </div>
+
+                        <div class="tag-selector-modal-footer">
+                          <button
+                            type="button"
+                            class="btn-confirm-tag-selector"
+                            (click)="closeTagSelectorDropdown(field.name)"
+                          >
+                            OK
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <div class="tag-selector-selected">
+                  <div class="tag-selector-selected-list">
+                    @if ((form.get(field.name)?.value || []).length === 0) {
+                      <span class="tag-selector-no-selected">Nenhuma tag selecionada</span>
+                    } @else {
+                      @for (value of form.get(field.name)?.value || []; track value) {
+                        @for (option of field.options || []; track option.value) {
+                          @if (option.value === value) {
+                            <button
+                              type="button"
+                              class="tag-selector-selected-button"
+                              (click)="removeTagSelectorOption(field.name, value)"
+                              title="Clique para remover"
+                            >
+                              <span class="tag-selector-selected-text">{{ option.label }}</span>
+                              <span class="tag-selector-remove-icon">×</span>
+                            </button>
+                          }
+                        }
+                      }
+                    }
+                  </div>
+                </div>
+              }
+
+              @case('checkbox') {
+                <div class="checkbox-wrapper">
+                  <input
+                    type="checkbox"
+                    [id]="field.name"
+                    [formControlName]="field.name"
+                  />
+                  <span>{{ field.placeholder }}</span>
+                </div>
+              }
+
+              @case('radio') {
+                <div class="radio-group">
+                  @for(option of field.options; track option.value) {
+                    <label class="radio-label">
+                      <input
+                        type="radio"
+                        [formControlName]="field.name"
+                        [value]="option.value"
+                      />
+                      <span>{{ option.label }}</span>
+                    </label>
+                  }
+                </div>
+              }
+
+              @default {
+                <input
+                  [type]="field.type"
+                  [id]="field.name"
+                  [formControlName]="field.name"
+                  [placeholder]="field.placeholder || ''"
+                  [class.error]="form.get(field.name)?.invalid && form.get(field.name)?.touched"
+                />
+              }
+            }
+
+            @if(form.get(field.name)?.invalid && form.get(field.name)?.touched) {
+              <span class="error-message">{{ getFieldError(field.name) }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-cancel" (click)="onCancel()">
+          {{ config.cancelText || 'Cancelar' }}
+        </button>
+        <button type="submit" class="btn btn-submit">
+          {{ config.submitText || 'Confirmar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+}

@@ -1,4 +1,4 @@
-import { User } from "../model/User";
+import { User } from "../model/User.model";
 
 export interface UserUpdateResponseDTO {
     user: User;
