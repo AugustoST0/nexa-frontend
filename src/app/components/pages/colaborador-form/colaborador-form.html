@@ -1,0 +1,282 @@
+<div class="colaborador-form-container">
+  <div class="form-header">
+    <h1>{{ isEditMode() ? 'Editar Colaborador' : 'Novo Colaborador' }}</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Carregando...</div>
+  } @else {
+    <app-card variant="elevated" class="form-card">
+      <form [formGroup]="colaboradorForm" (ngSubmit)="onSubmit()">
+        <div class="form-section">
+          <h2>Dados Pessoais</h2>
+
+          <div class="form-row">
+            <app-form-field
+              label="Nome Completo"
+              [required]="true"
+              htmlFor="nome"
+              [error]="getErrorMessage('nome')"
+            >
+              <app-input
+                id="nome"
+                type="text"
+                formControlName="nome"
+                placeholder="Nome completo do colaborador"
+                [error]="hasError('nome')"
+              ></app-input>
+            </app-form-field>
+
+            <app-form-field
+              label="Email"
+              [required]="true"
+              htmlFor="email"
+              [error]="getErrorMessage('email')"
+            >
+              <app-input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="email@exemplo.com"
+                [error]="hasError('email')"
+              ></app-input>
+            </app-form-field>
+          </div>
+
+          <div class="form-row">
+            <app-form-field
+              label="Matrícula"
+              [required]="true"
+              htmlFor="matricula"
+              [error]="getErrorMessage('matricula')"
+            >
+              <app-input
+                id="matricula"
+                type="text"
+                formControlName="matricula"
+                placeholder="Ex: 12345"
+                [error]="hasError('matricula')"
+              ></app-input>
+            </app-form-field>
+
+            <app-form-field
+              label="CPF"
+              [required]="true"
+              htmlFor="cpf"
+              [error]="getErrorMessage('cpf')"
+            >
+              <app-input
+                id="cpf"
+                type="text"
+                formControlName="cpf"
+                placeholder="Digite apenas números"
+                [error]="hasError('cpf')"
+                (input)="onCPFInput($event)"
+              ></app-input>
+            </app-form-field>
+          </div>
+
+          <div class="form-row">
+            <app-form-field
+              label="Data de Nascimento"
+              [required]="true"
+              htmlFor="dataNascimento"
+              [error]="getErrorMessage('dataNascimento')"
+            >
+              <app-input
+                id="dataNascimento"
+                type="date"
+                formControlName="dataNascimento"
+                [error]="hasError('dataNascimento')"
+              ></app-input>
+            </app-form-field>
+
+            <app-form-field
+              label="Data de Admissão"
+              [required]="true"
+              htmlFor="dataAdmissao"
+              [error]="getErrorMessage('dataAdmissao')"
+            >
+              <app-input
+                id="dataAdmissao"
+                type="date"
+                formControlName="dataAdmissao"
+                [error]="hasError('dataAdmissao')"
+              ></app-input>
+            </app-form-field>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Dados Profissionais</h2>
+
+          <div class="form-row">
+            <app-form-field
+              label="Cargo"
+              [required]="true"
+              htmlFor="cargo"
+              [error]="getErrorMessage('cargo')"
+            >
+              <app-input
+                id="cargo"
+                type="text"
+                formControlName="cargo"
+                placeholder="Ex: Desenvolvedor, Analista, etc."
+                [error]="hasError('cargo')"
+              ></app-input>
+            </app-form-field>
+
+            <app-form-field
+              label="Departamento"
+              [required]="true"
+              htmlFor="departamento"
+              [error]="getErrorMessage('departamento')"
+            >
+              <app-input
+                id="departamento"
+                type="text"
+                formControlName="departamento"
+                placeholder="Ex: TI, RH, Financeiro, etc."
+                [error]="hasError('departamento')"
+              ></app-input>
+            </app-form-field>
+          </div>
+
+          <div class="form-row">
+            <app-form-field
+              label="Supervisor"
+              htmlFor="supervisorId"
+              [error]="getErrorMessage('supervisorId')"
+            >
+              <select
+                id="supervisorId"
+                formControlName="supervisorId"
+                class="supervisor-select"
+                [class.error]="hasError('supervisorId')"
+              >
+                <option value="">Selecione um supervisor (opcional)</option>
+                @for (supervisor of availableSupervisores(); track supervisor.id) {
+                  <option [value]="supervisor.id">
+                    {{ supervisor.nome }} - {{ supervisor.cargo }}
+                  </option>
+                }
+              </select>
+            </app-form-field>
+
+            @if (isEditMode()) {
+              <div class="checkbox-container">
+                <label class="checkbox-label">
+                  <input type="checkbox" formControlName="ativo" />
+                  <span>Colaborador Ativo</span>
+                </label>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Tags / Skills</h2>
+          
+          @if (availableTags().length === 0) {
+            <p class="no-tags">Nenhuma tag disponível. <a routerLink="/catalogo">Criar tags no catálogo</a></p>
+          } @else {
+            <div class="tags-selector-wrapper" (click)="$event.stopPropagation()">
+              <div class="tags-input-group">
+                <input
+                  type="text"
+                  [value]="tagSearchInput()"
+                  (input)="onTagSearchChange($event.target.value)"
+                  (click)="toggleTagsDropdown(); $event.stopPropagation()"
+                  placeholder="Buscar tags..."
+                  class="tags-search-input"
+                />
+                <button
+                  type="button"
+                  (click)="toggleTagsDropdown(); $event.stopPropagation()"
+                  class="tags-toggle-btn"
+                >
+                  ▼
+                </button>
+              </div>
+
+              @if (showTagsDropdown()) {
+                <div class="tags-dropdown" (click)="$event.stopPropagation()">
+                  @for (tag of getFilteredTags(); track tag.id) {
+                    <button
+                      type="button"
+                      class="tag-dropdown-item"
+                      [class.selected]="isTagSelected(tag.id!)"
+                      (click)="toggleTag(tag.id!)"
+                    >
+                      <span class="tag-name">{{ tag.nome }}</span>
+                      @if (tag.grupo) {
+                        <span class="tag-group">{{ tag.grupo.nome }}</span>
+                      }
+                    </button>
+                  }
+                  @if (getFilteredTags().length === 0) {
+                    <div class="tags-empty">Nenhuma tag encontrada</div>
+                  }
+                  <div class="tags-dropdown-footer">
+                    <button
+                      type="button"
+                      class="btn-confirm-tags"
+                      (click)="confirmTagSelection()"
+                    >
+                      OK
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="selected-tags">
+              <label>Tags Selecionadas:</label>
+              <div class="selected-tags-list">
+                @if (selectedTags().length === 0) {
+                  <span class="no-selected">Nenhuma tag selecionada</span>
+                } @else {
+                  @for (tagId of selectedTags(); track tagId) {
+                    @for (tag of availableTags(); track tag.id) {
+                      @if (tag.id === tagId) {
+                        <button
+                          type="button"
+                          class="selected-tag-button"
+                          (click)="removeTag(tag.id!)"
+                          title="Clique para remover"
+                        >
+                          <span class="tag-text">{{ tag.nome }}</span>
+                          <span class="tag-remove-icon">×</span>
+                        </button>
+                      }
+                    }
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="form-actions">
+          <app-button
+            type="button"
+            variant="outline"
+            size="lg"
+            (clicked)="onCancel()"
+          >
+            Cancelar
+          </app-button>
+          <app-button
+            type="submit"
+            variant="primary"
+            size="lg"
+            [disabled]="colaboradorForm.invalid"
+            [loading]="loading()"
+          >
+            {{ isEditMode() ? 'Atualizar' : 'Criar' }} Colaborador
+          </app-button>
+        </div>
+      </form>
+    </app-card>
+  }
+</div>

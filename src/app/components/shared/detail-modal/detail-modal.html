@@ -1,0 +1,65 @@
+@if (config) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-container">
+      <app-card variant="elevated" [padding]="false" class="modal-card">
+        <div class="modal-header">
+          <h2>{{ config.title }}</h2>
+          <button class="close-button" (click)="onClose()" type="button">
+            <lucide-icon [img]="X" [size]="20"></lucide-icon>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          @for (section of config.sections; track $index) {
+            <div class="detail-section">
+              @if (section.title) {
+                <h3 class="section-title">{{ section.title }}</h3>
+              }
+              <div class="detail-grid">
+                @for (field of section.fields; track $index) {
+                  <div class="detail-field">
+                    <label class="field-label">{{ field.label }}</label>
+                    <div class="field-value">
+                      @if (field.type === 'badge') {
+                        <app-badge
+                          [variant]="field.badgeVariant || 'primary'"
+                          size="sm"
+                        >
+                          {{ field.value }}
+                        </app-badge>
+                      } @else if (field.type === 'list') {
+                        @if (field.value && field.value.length > 0) {
+                          <div class="list-items">
+                            @for (item of field.value; track $index) {
+                              <app-badge variant="secondary" size="sm">
+                                {{ item.nome || item }}
+                              </app-badge>
+                            }
+                          </div>
+                        } @else {
+                          <span class="empty-value">Nenhum</span>
+                        }
+                      } @else {
+                        <span>{{ field.value || '-' }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <app-button
+            variant="secondary"
+            size="md"
+            (clicked)="onClose()"
+          >
+            {{ config.closeText || 'Fechar' }}
+          </app-button>
+        </div>
+      </app-card>
+    </div>
+  </div>
+}

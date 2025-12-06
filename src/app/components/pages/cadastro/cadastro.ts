@@ -1,29 +1,33 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import {
   Validators,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { UserService } from '../../../core/services/user-service';
-import { ToastrService } from 'ngx-toastr';
-import { User } from '../../../core/model/User';
+import { UserService } from '../../../core/services/crud/user-service';
+import { AlertService } from '../../../core/services/alert-service';
+import { User } from '../../../core/model/User.model';
 import { CommonModule } from '@angular/common';
+import { ButtonComponent } from '../../ui/button/button';
+import { InputComponent } from '../../ui/input/input';
+import { FormFieldComponent } from '../../ui/form-field/form-field';
+import { CardComponent } from '../../ui/card/card';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-cadastro',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, ButtonComponent, InputComponent, FormFieldComponent, CardComponent],
   templateUrl: './cadastro.html',
   styleUrls: ['./cadastro.css'],
 })
 export class Cadastro implements OnInit {
-  registerForm!: FormGroup;
+  private readonly userService = inject(UserService);
+  private readonly fb = inject(FormBuilder);
+  private readonly alertService = inject(AlertService);
 
-  constructor(
-    private userService: UserService,
-    private fb: FormBuilder,
-    private toastr: ToastrService
-  ) { }
+  registerForm!: FormGroup;
+  isSubmitting = false;
 
   ngOnInit() {
     this.registerForm = this.fb.group({
@@ -40,7 +44,7 @@ export class Cadastro implements OnInit {
 
   onSubmit() {
     if (this.registerForm.invalid) {
-      this.toastr.error('Preencha todos os campos corretamente.', 'Erro');
+      this.alertService.error('Preencha todos os campos corretamente.');
       this.registerForm.markAllAsTouched();
       return;
     }
@@ -49,7 +53,7 @@ export class Cadastro implements OnInit {
     const confirmPassword = this.registerForm.get('confirmPassword')?.value;
 
     if (password !== confirmPassword) {
-      this.toastr.error('Senhas não conferem.', 'Erro');
+      this.alertService.error('Senhas não conferem.');
       return;
     }
 
@@ -60,21 +64,45 @@ export class Cadastro implements OnInit {
       admin: this.registerForm.get('admin')?.value,
     };
 
-    console.log('Payload de registro:', payload);
+    this.isSubmitting = true;
+    this.userService.register(payload)
+      .pipe(finalize(() => {
+        this.isSubmitting = false;
+      }))
+      .subscribe({
+        next: () => {
+          this.alertService.success('Usuário cadastrado com sucesso.');
+          this.registerForm.reset({ admin: false });
+        },
+        error: (err) => {
+          if (err.status === 409 && err.error.code === 'EMAIL_ALREADY_EXISTS') {
+            this.alertService.error('E-mail já está sendo utilizado.');
+          } else {
+            this.alertService.error('Erro ao registrar usuário.');
+          }
+          console.error(err);
+        },
+      });
+  }
 
-    this.userService.register(payload).subscribe({
-      next: () => {
-        this.toastr.success('Usuário cadastrado com sucesso.', 'Sucesso');
-        this.registerForm.reset({ admin: false });
-      },
-      error: (err) => {
-        if (err.status === 409 && err.error.code === 'EMAIL_ALREADY_EXISTS') {
-          this.toastr.error('E-mail já está sendo utilizado.', 'Erro');
-        } else {
-          this.toastr.error('Erro ao registrar usuário.', 'Erro');
-        }
-        console.error(err);
-      },
-    });
+  getErrorMessage(controlName: string): string {
+    const control = this.registerForm.get(controlName);
+    if (!control || !control.errors || !control.touched) return '';
+
+    if (control.errors['required']) return 'Campo obrigatório';
+    if (control.errors['email']) return 'Email inválido';
+    if (control.errors['minlength']) {
+      return `Mínimo de ${control.errors['minlength'].requiredLength} caracteres`;
+    }
+    if (control.errors['maxlength']) {
+      return `Máximo de ${control.errors['maxlength'].requiredLength} caracteres`;
+    }
+
+    return 'Campo inválido';
+  }
+
+  hasError(fieldName: string): boolean {
+    const field = this.registerForm.get(fieldName);
+    return !!(field?.invalid && field?.touched);
   }
 }

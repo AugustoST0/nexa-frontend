@@ -1,0 +1,71 @@
+<div class="results-table-container">
+  @if (resultados.length > 0) {
+    <div class="results-info">
+      <p>Total de resultados: <strong>{{ resultados.length }}</strong></p>
+    </div>
+  }
+
+  @if (resultados.length > 0) {
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Matrícula</th>
+          <th>Cargo</th>
+          <th>Departamento</th>
+          <th>Supervisor</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (resultado of resultados; track resultado.id) {
+          <tr>
+            <td>{{ resultado.nome }}</td>
+            <td>{{ resultado.matricula }}</td>
+            <td>{{ resultado.cargo }}</td>
+            <td>{{ resultado.departamento }}</td>
+            <td>
+              @if (resultado.supervisor) {
+                {{ resultado.supervisor.nome }}
+              } @else {
+                <span class="no-supervisor">Sem supervisor</span>
+              }
+            </td>
+            <td class="actions">
+              <app-button
+                variant="ghost"
+                size="sm"
+                (clicked)="onView(resultado.id!)"
+                title="Visualizar"
+              >
+                <lucide-icon [img]="Eye" [size]="16"></lucide-icon>
+              </app-button>
+              <app-button
+                variant="ghost"
+                size="sm"
+                (clicked)="onEdit(resultado.id!)"
+                title="Editar"
+              >
+                <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+              </app-button>
+              <app-button
+                variant="ghost"
+                size="sm"
+                (clicked)="onDelete(resultado.id!, resultado.nome)"
+                title="Excluir"
+              >
+                <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+              </app-button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (resultados.length === 0 && !loading && mensagem) {
+    <div class="empty-state">
+      {{ mensagem }}
+    </div>
+  }
+</div>
