@@ -89,6 +89,10 @@ export class AuthService {
       );
   }
 
+  isAdmin(): boolean {
+    return this.currentUserSubject.value?.admin ?? false;
+  }
+
   logout() {
     this.localStorageService.removeTokens();
     this.stopTokenRefreshTimer();

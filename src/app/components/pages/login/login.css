@@ -1,24 +1,103 @@
-.login-container {
+.auth-layout {
     display: flex;
-    justify-content: center;
-    align-items: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
 }
 
-.login-container app-card {
+.auth-brand {
+    width: 40%;
+    background-color: #0F172A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.auth-brand-content {
+    text-align: center;
+}
+
+.auth-logo {
+    color: #ffffff;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin: 0;
+}
+
+.auth-brand-subtitle {
+    color: #94A3B8;
+    font-size: 16px;
+    margin: 12px 0 0;
+}
+
+.auth-form-panel {
+    width: 60%;
+    background-color: #F8FAFC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.auth-card {
+    display: block;
     width: 100%;
     max-width: 400px;
 }
 
-.logo {
+.auth-card ::ng-deep .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+}
+
+.auth-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 4px;
+}
+
+.auth-desc {
+    color: #64748B;
+    font-size: 14px;
+    margin: 0 0 24px;
+}
+
+.auth-card ::ng-deep .input {
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    background-color: #ffffff;
+}
+
+.auth-card ::ng-deep .input:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.auth-link {
+    display: block;
     text-align: center;
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
-    background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0;
-    letter-spacing: 0.05em;
+    margin-top: 16px;
+    color: #4F46E5;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .auth-brand {
+        display: none;
+    }
+
+    .auth-form-panel {
+        width: 100%;
+    }
 }

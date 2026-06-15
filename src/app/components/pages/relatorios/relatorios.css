@@ -1,0 +1,133 @@
+.relatorios-container {
+  padding: var(--spacing-8);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-8);
+}
+
+.header h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: #0F172A;
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  font-size: var(--font-size-lg);
+  color: #64748B;
+}
+
+/* Empty state */
+.empty-state-card ::ng-deep .card {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+}
+
+.empty-state p {
+  font-size: var(--font-size-lg);
+  color: #64748B;
+  margin: 0;
+}
+
+/* Table card */
+.table-card {
+  display: block;
+}
+
+.table-card ::ng-deep .card {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.relatorios-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.relatorios-table thead {
+  background-color: #F8FAFC;
+}
+
+.relatorios-table th {
+  padding: 12px 24px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.relatorios-table tbody td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 14px;
+  color: #0F172A;
+  vertical-align: middle;
+}
+
+.relatorios-table tbody tr {
+  transition: background-color var(--transition-base);
+}
+
+.relatorios-table tbody tr:hover {
+  background-color: #F8FAFC;
+}
+
+.relatorio-titulo {
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.relatorio-parametros {
+  font-size: 13px;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.table-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
+  font-size: 13px;
+  color: #64748B;
+}
+
+@media (max-width: 768px) {
+  .relatorios-container {
+    padding: var(--spacing-4);
+  }
+
+  .table-container {
+    overflow-x: scroll;
+  }
+}

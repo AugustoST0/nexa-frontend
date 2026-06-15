@@ -1,23 +1,28 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { LucideAngularModule, LogOut, Users, Tags } from 'lucide-angular';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { LucideAngularModule, Home, Folder, Users, UserPlus, BarChart3, LogOut } from 'lucide-angular';
 import { AuthService } from '../../../core/services/auth-service';
-import { ButtonComponent } from '../../ui/button/button';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, ButtonComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule],
   templateUrl: './layout.html',
   styleUrl: './layout.css',
 })
 export class Layout {
   private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
 
-  readonly LogOut = LogOut;
+  readonly Home = Home;
+  readonly Folder = Folder;
   readonly Users = Users;
-  readonly Tags = Tags;
+  readonly UserPlus = UserPlus;
+  readonly BarChart3 = BarChart3;
+  readonly LogOut = LogOut;
+
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
 
   onLogout() {
     this.authService.logout();

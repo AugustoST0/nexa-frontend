@@ -1,36 +1,36 @@
 .filter-container {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .filter-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--neutral-700);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--fg-secondary);
 }
 
 .filter-input,
 .filter-select {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  border: 1px solid var(--neutral-300);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
-  background-color: var(--neutral-0);
-  color: var(--neutral-900);
-  transition: all 0.2s ease;
+  background-color: var(--bg-primary);
+  color: var(--fg-primary);
+  transition: all var(--transition-base);
 }
 
 .filter-input:focus,
 .filter-select:focus {
   outline: none;
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px var(--primary-100);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus-primary);
 }
 
 .filter-input::placeholder {
-  color: var(--neutral-400);
+  color: var(--fg-tertiary);
 }
 
 .filter-select {
@@ -40,7 +40,7 @@
 .filter-checkbox {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   cursor: pointer;
   user-select: none;
 }
@@ -49,10 +49,10 @@
   width: 1rem;
   height: 1rem;
   cursor: pointer;
-  accent-color: var(--primary-500);
+  accent-color: var(--color-primary);
 }
 
 .filter-checkbox span {
-  font-size: 0.875rem;
-  color: var(--neutral-700);
+  font-size: var(--text-sm);
+  color: var(--fg-secondary);
 }

@@ -1,0 +1,171 @@
+.home-container {
+  padding: var(--spacing-8);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.home-header {
+  margin-bottom: var(--spacing-8);
+}
+
+.home-header h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: #0F172A;
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid #F1F5F9;
+  margin-bottom: var(--spacing-4);
+}
+
+.card-head lucide-icon {
+  color: #4F46E5;
+  flex-shrink: 0;
+}
+
+.card-head h2 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: #0F172A;
+  margin: 0;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  min-height: 120px;
+}
+
+.list-item {
+  padding: 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+}
+
+.list-item h3 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: #0F172A;
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.item-meta {
+  font-size: var(--font-size-sm);
+  color: #64748B;
+  margin: 0;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.item-row h3 {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-row .count-badge {
+  flex-shrink: 0;
+}
+
+.item-row .item-date {
+  margin: 0;
+}
+
+.list-item .pills {
+  margin-top: 8px;
+}
+
+.item-date {
+  font-size: 13px;
+  color: #64748B;
+  margin: 4px 0 0;
+}
+
+.count-badge {
+  background: #F1F5F9;
+  color: #475569;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.pill-tag {
+  background: #EEF2FF;
+  color: #4338CA;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pill-op {
+  color: #94A3B8;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.empty {
+  color: #64748B;
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.card-footer {
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid #F1F5F9;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ver-mais {
+  border: none;
+  background: transparent;
+  color: #4F46E5;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ver-mais:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .home-container {
+    padding: var(--spacing-4);
+  }
+}

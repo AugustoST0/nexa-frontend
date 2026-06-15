@@ -8,6 +8,7 @@ export const API_ROUTES = {
     GRUPOS: `${BASE_URL}/grupos`,
     TAGS: `${BASE_URL}/tags`,
     COLABORADORES: `${BASE_URL}/colaboradores`,
+    RELATORIOS: `${BASE_URL}/relatorios`,
 } as const;
 
 export const USER_ENDPOINTS = {
@@ -54,4 +55,11 @@ export const COLABORADOR_ENDPOINTS = {
     CREATE: API_ROUTES.COLABORADORES,
     UPDATE: (id: number) => `${API_ROUTES.COLABORADORES}/${id}`,
     DELETE: (id: number) => `${API_ROUTES.COLABORADORES}/${id}`,
+} as const;
+
+export const RELATORIO_ENDPOINTS = {
+    GET_ALL: API_ROUTES.RELATORIOS,
+    GERAR: (grupoId: number) => `${API_ROUTES.RELATORIOS}/gerar/${grupoId}`,
+    DOWNLOAD_CSV: (id: number) => `${API_ROUTES.RELATORIOS}/${id}/csv`,
+    DOWNLOAD_PDF: (id: number) => `${API_ROUTES.RELATORIOS}/${id}/pdf`,
 } as const;

@@ -1,0 +1,67 @@
+<div class="relatorios-container">
+  <div class="header">
+    <h1>Relatórios</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Carregando...</div>
+  } @else if (relatorios().length === 0) {
+    <app-card variant="bordered" class="empty-state-card">
+      <div class="empty-state">
+        <p>Nenhum relatório gerado</p>
+      </div>
+    </app-card>
+  } @else {
+    <app-card variant="elevated" class="table-card">
+      <div class="table-container">
+        <table class="relatorios-table">
+          <thead>
+            <tr>
+              <th>Nome do Relatório / Parâmetros</th>
+              <th>Data e Hora da Geração</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (relatorio of relatorios(); track relatorio.id) {
+              <tr>
+                <td>
+                  <div class="relatorio-titulo">{{ relatorio.titulo }}</div>
+                  <div class="relatorio-parametros">{{ relatorio.parametros }}</div>
+                </td>
+                <td>{{ relatorio.geradoEm | date:"dd/MM/yyyy 'às' HH:mm" }}</td>
+                <td class="actions">
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="onDownloadPdf(relatorio.id)"
+                    title="Baixar PDF"
+                  >
+                    <lucide-icon [img]="FileText" [size]="16"></lucide-icon>
+                    PDF
+                  </app-button>
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="onDownloadCsv(relatorio.id)"
+                    title="Baixar CSV"
+                  >
+                    <lucide-icon [img]="Download" [size]="16"></lucide-icon>
+                    CSV
+                  </app-button>
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="table-footer">
+                {{ relatorios().length }} relatório(s)
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </app-card>
+  }
+</div>

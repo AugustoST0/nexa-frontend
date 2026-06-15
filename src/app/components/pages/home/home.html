@@ -1,0 +1,73 @@
+<div class="home-container">
+  <div class="home-header">
+    <h1>Boas vindas, {{ userName() }}!</h1>
+  </div>
+
+  <div class="cards-grid">
+    <!-- Pesquisas Recentes -->
+    <app-card variant="elevated" class="home-card">
+      <div class="card-head">
+        <lucide-icon [img]="Search" [size]="20"></lucide-icon>
+        <h2>Pesquisas Recentes</h2>
+      </div>
+
+      <div class="card-list">
+        @if (pesquisasRecentes().length === 0) {
+          <p class="empty">Nenhuma pesquisa salva</p>
+        } @else {
+          @for (pesquisa of pesquisasRecentes(); track pesquisa.id) {
+            <div class="list-item">
+              <div class="item-row">
+                <p class="item-date">{{ formatarData(pesquisa.criadoEm) }}</p>
+                @if (pesquisaCounts()[pesquisa.id!] !== undefined) {
+                  <span class="count-badge">{{ pesquisaCounts()[pesquisa.id!] }} colaborador(es)</span>
+                }
+              </div>
+              <div class="pills">
+                @for (token of pesquisa.tokens; track $index) {
+                  @if (isOperador(token)) {
+                    <span class="pill-op">{{ token }}</span>
+                  } @else {
+                    <span class="pill-tag">{{ token }}</span>
+                  }
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="card-footer">
+        <button type="button" class="ver-mais" (click)="verPesquisas()">Ver mais</button>
+      </div>
+    </app-card>
+
+    <!-- Relatórios Recentes -->
+    <app-card variant="elevated" class="home-card">
+      <div class="card-head">
+        <lucide-icon [img]="FileText" [size]="20"></lucide-icon>
+        <h2>Relatórios Recentes</h2>
+      </div>
+
+      <div class="card-list">
+        @if (relatoriosRecentes().length === 0) {
+          <p class="empty">Nenhum relatório gerado</p>
+        } @else {
+          @for (relatorio of relatoriosRecentes(); track relatorio.id) {
+            <div class="list-item">
+              <div class="item-row">
+                <h3>{{ relatorio.titulo }}</h3>
+                <span class="count-badge">{{ relatorio.totalColaboradores }} colaborador(es)</span>
+              </div>
+              <p class="item-date">{{ formatarData(relatorio.geradoEm) }}</p>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="card-footer">
+        <button type="button" class="ver-mais" (click)="verRelatorios()">Ver mais</button>
+      </div>
+    </app-card>
+  </div>
+</div>

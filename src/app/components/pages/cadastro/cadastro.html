@@ -1,6 +1,10 @@
-<div class="register-container">
-    <app-card variant="elevated">
-        <h1 class="register-title">Criar usuário - <span class="logo">NEXA</span></h1>
+<div class="page-container">
+    <div class="page-header">
+        <h1>Cadastro de Usuário</h1>
+        <p>Crie um novo acesso ao sistema</p>
+    </div>
+
+    <app-card variant="elevated" class="cadastro-card">
         <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
             <app-form-field
                 label="Nome"
@@ -75,7 +79,7 @@
                 [fullWidth]="true"
                 [loading]="isSubmitting"
             >
-                Criar Novo Usuário
+                Cadastrar
             </app-button>
         </form>
     </app-card>

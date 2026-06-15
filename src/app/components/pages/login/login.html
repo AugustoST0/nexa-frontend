@@ -1,47 +1,58 @@
-<div class="login-container">
-    <app-card variant="elevated">
-        <h1 class="logo">NEXA</h1>
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <app-form-field
-                label="Email"
-                [required]="true"
-                htmlFor="email"
-                [error]="getErrorMessage('email')"
-            >
-                <app-input
-                    id="email"
-                    type="email"
-                    formControlName="email"
-                    placeholder="seu@email.com"
-                    [error]="hasError('email')"
-                ></app-input>
-            </app-form-field>
+<div class="auth-layout">
+    <div class="auth-brand">
+        <div class="auth-brand-content">
+            <h1 class="auth-logo">NEXA</h1>
+            <p class="auth-brand-subtitle">Gestão de Recursos Humanos</p>
+        </div>
+    </div>
 
-            <app-form-field
-                label="Senha"
-                [required]="true"
-                htmlFor="password"
-                [error]="getErrorMessage('password')"
-            >
-                <app-input
-                    id="password"
-                    type="password"
-                    formControlName="password"
-                    placeholder="••••••••"
-                    [error]="hasError('password')"
-                ></app-input>
-            </app-form-field>
+    <div class="auth-form-panel">
+        <app-card variant="elevated" class="auth-card">
+            <h2 class="auth-title">Bem-vindo de volta</h2>
+            <p class="auth-desc">Entre com suas credenciais</p>
 
-            <app-button
-                type="submit"
-                variant="primary"
-                size="lg"
-                [fullWidth]="true"
-                [disabled]="loginForm.invalid"
-                [loading]="isSubmitting"
-            >
-                Entrar
-            </app-button>
-        </form>
-    </app-card>
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                <app-form-field
+                    label="Email"
+                    [required]="true"
+                    htmlFor="email"
+                    [error]="getErrorMessage('email')"
+                >
+                    <app-input
+                        id="email"
+                        type="email"
+                        formControlName="email"
+                        placeholder="seu@email.com"
+                        [error]="hasError('email')"
+                    ></app-input>
+                </app-form-field>
+
+                <app-form-field
+                    label="Senha"
+                    [required]="true"
+                    htmlFor="password"
+                    [error]="getErrorMessage('password')"
+                >
+                    <app-input
+                        id="password"
+                        type="password"
+                        formControlName="password"
+                        placeholder="••••••••"
+                        [error]="hasError('password')"
+                    ></app-input>
+                </app-form-field>
+
+                <app-button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    [fullWidth]="true"
+                    [disabled]="loginForm.invalid"
+                    [loading]="isSubmitting"
+                >
+                    Entrar
+                </app-button>
+            </form>
+        </app-card>
+    </div>
 </div>

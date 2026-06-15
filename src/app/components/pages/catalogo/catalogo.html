@@ -1,39 +1,52 @@
 <div class="catalogo-container">
   <div class="header">
-    <h1>Catálogo de Grupos e Tags</h1>
-    <p class="subtitle">Gerencie grupos e suas tags (skills, categorias, etc.)</p>
+    <h1>Catálogo</h1>
+    <p class="subtitle">Gerencie tags e pesquisas salvas</p>
   </div>
 
-  <div class="catalogo-layout">
-    <!-- Coluna de Tags (em cima) -->
+  <div class="tabs">
+    <button
+      type="button"
+      class="tab"
+      [class.active]="activeTab() === 'tags'"
+      (click)="activeTab.set('tags')"
+    >
+      Tags
+    </button>
+    <button
+      type="button"
+      class="tab"
+      [class.active]="activeTab() === 'pesquisas'"
+      (click)="activeTab.set('pesquisas')"
+    >
+      Pesquisas
+    </button>
+  </div>
+
+  <!-- ===== Aba Tags ===== -->
+  @if (activeTab() === 'tags') {
     <app-card variant="elevated" class="panel">
       <div class="panel-header">
-        <h2>Tags</h2>
-        <div class="panel-actions">
-          @if (selectedGrupo()) {
-            <app-button variant="secondary" size="sm" (clicked)="onAssociateExistingTag()">
-              <lucide-icon [img]="Link" [size]="16"></lucide-icon>
-              <span>Associar Tag</span>
-            </app-button>
-          }
-          <app-button variant="primary" size="sm" (clicked)="onNewTag()">
-            <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
-            <span>Nova Tag</span>
-          </app-button>
-        </div>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar tags..."
+          [ngModel]="tagSearch()"
+          (ngModelChange)="tagSearch.set($event)"
+        />
+        <app-button variant="primary" size="sm" (clicked)="onNewTag()">
+          <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+          <span>Nova Tag</span>
+        </app-button>
       </div>
 
-      @if (tags().length === 0) {
+      @if (filteredTags().length === 0) {
         <div class="empty-state">
-          @if (selectedGrupo()) {
-            <p>Nenhuma tag no grupo "{{ selectedGrupo()!.nome }}"</p>
-          } @else {
-            <p>Nenhuma tag cadastrada</p>
-          }
+          <p>Nenhuma tag encontrada</p>
         </div>
       } @else {
         <div class="tags-grid">
-          @for (tag of tags(); track tag.id) {
+          @for (tag of filteredTags(); track tag.id) {
             <app-card variant="bordered" [hoverable]="true" class="tag-card">
               <div class="tag-header">
                 <app-badge variant="primary" size="md">{{ tag.nome }}</app-badge>
@@ -41,15 +54,9 @@
                   <app-button variant="ghost" size="sm" (clicked)="onEditTag(tag)" title="Editar">
                     <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
                   </app-button>
-                  @if (selectedGrupo()) {
-                    <app-button variant="ghost" size="sm" (clicked)="onUnlinkTag(tag)" title="Desassociar">
-                      <lucide-icon [img]="Unlink" [size]="16"></lucide-icon>
-                    </app-button>
-                  } @else {
-                    <app-button variant="ghost" size="sm" (clicked)="onDeleteTag(tag)" title="Excluir">
-                      <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
-                    </app-button>
-                  }
+                  <app-button variant="ghost" size="sm" (clicked)="onDeleteTag(tag)" title="Excluir">
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                  </app-button>
                 </div>
               </div>
               @if (tag.descricao) {
@@ -60,56 +67,177 @@
         </div>
       }
     </app-card>
+  }
 
-    <!-- Coluna de Grupos (em baixo) -->
+  <!-- ===== Aba Pesquisas ===== -->
+  @if (activeTab() === 'pesquisas') {
     <app-card variant="elevated" class="panel">
       <div class="panel-header">
-        <h2>Grupos</h2>
-        <app-button variant="primary" size="sm" (clicked)="onNewGrupo()">
+        <h2>Pesquisas Salvas</h2>
+        <app-button variant="primary" size="sm" (clicked)="openNewSearch()">
           <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
-          <span>Novo Grupo</span>
+          <span>Nova Pesquisa</span>
         </app-button>
       </div>
 
       @if (loading()) {
         <div class="loading">Carregando...</div>
-      } @else if (grupos().length === 0) {
+      } @else if (pesquisas().length === 0) {
         <div class="empty-state">
-          <p>Nenhum grupo cadastrado</p>
-          <app-button variant="primary" (clicked)="onNewGrupo()">
-            Criar Primeiro Grupo
-          </app-button>
+          <p>Nenhuma pesquisa salva</p>
         </div>
       } @else {
-        <div class="grupos-list">
-          @for (grupo of grupos(); track grupo.id) {
-            <app-card
-              [variant]="selectedGrupo()?.id === grupo.id ? 'bordered' : 'default'"
-              [hoverable]="true"
-              class="grupo-item"
-              [class.grupo-selected]="selectedGrupo()?.id === grupo.id"
-              (click)="selectGrupo(grupo)"
-            >
-              <div class="grupo-content">
-                <div class="grupo-info">
-                  <h3>{{ grupo.nome }}</h3>
-                  @if (grupo.descricao) {
-                    <p>{{ grupo.descricao }}</p>
+        <div class="pesquisas-list">
+          @for (pesquisa of pesquisas(); track pesquisa.id) {
+            <div class="pesquisa-item">
+              <div class="pesquisa-info">
+                <h3>{{ pesquisa.nome }}</h3>
+                <div class="pills">
+                  @for (token of pesquisa.tokens; track $index) {
+                    @if (isOperador(token)) {
+                      <span class="pill-op">{{ token }}</span>
+                    } @else {
+                      <span class="pill-tag">{{ token }}</span>
+                    }
                   }
                 </div>
-                <div class="grupo-actions">
-                  <app-button variant="ghost" size="sm" (clicked)="onEditGrupo(grupo); $event.stopPropagation()" title="Editar">
-                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
-                  </app-button>
-                  <app-button variant="ghost" size="sm" (clicked)="onDeleteGrupo(grupo); $event.stopPropagation()" title="Excluir">
-                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
-                  </app-button>
-                </div>
               </div>
-            </app-card>
+              <div class="pesquisa-actions">
+                <button type="button" class="icon-btn" (click)="openSavedSearch(pesquisa)" title="Ver pesquisa">
+                  <lucide-icon [img]="Search" [size]="18"></lucide-icon>
+                </button>
+                <button type="button" class="icon-btn icon-btn-danger" (click)="onDeletePesquisa(pesquisa)" title="Excluir">
+                  <lucide-icon [img]="Trash2" [size]="18"></lucide-icon>
+                </button>
+              </div>
+            </div>
           }
         </div>
       }
     </app-card>
-  </div>
+  }
 </div>
+
+<!-- ===== Modal: Nova Pesquisa ===== -->
+@if (showNewSearch()) {
+  <div class="modal-overlay" (click)="closeNewSearch()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nova Pesquisa</h2>
+        <button type="button" class="icon-btn" (click)="closeNewSearch()" title="Fechar">
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="selects-row">
+          <div class="field">
+            <label>Tag 1</label>
+            <select [ngModel]="newTag1()" (ngModelChange)="newTag1.set($event)">
+              <option value="">Selecione...</option>
+              @for (tag of allTags(); track tag.id) {
+                <option [value]="tag.nome">{{ tag.nome }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Tag 2</label>
+            <select [ngModel]="newTag2()" (ngModelChange)="newTag2.set($event)">
+              <option value="">Selecione...</option>
+              @for (tag of allTags(); track tag.id) {
+                <option [value]="tag.nome">{{ tag.nome }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Operador</label>
+          <select [ngModel]="newOperador()" (ngModelChange)="newOperador.set($event)">
+            @for (op of operadores; track op) {
+              <option [value]="op">{{ op }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="preview">
+          <span class="preview-label">Pré-visualização:</span>
+          <span class="preview-query">{{ newTag1() }} {{ newOperador() }} {{ newTag2() }}</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="ghost" (clicked)="closeNewSearch()">Cancelar</app-button>
+        <app-button variant="primary" (clicked)="salvarPesquisa()">Salvar Pesquisa</app-button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Modal: Ver Pesquisa ===== -->
+@if (showSavedSearch() && selectedPesquisa(); as pesquisa) {
+  <div class="modal-overlay" (click)="closeSavedSearch()">
+    <div class="modal-card modal-card-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ pesquisa.nome }}</h2>
+        <button type="button" class="icon-btn" (click)="closeSavedSearch()" title="Fechar">
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="pills">
+          @for (token of pesquisa.tokens; track $index) {
+            @if (isOperador(token)) {
+              <span class="pill-op">{{ token }}</span>
+            } @else {
+              <span class="pill-tag">{{ token }}</span>
+            }
+          }
+        </div>
+
+        @if (searchResults() !== null) {
+          @if (searchResults()!.length === 0) {
+            <p class="no-results">Nenhum colaborador encontrado.</p>
+          } @else {
+            <div class="results-table-wrapper">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Matrícula</th>
+                    <th>Cargo</th>
+                    <th>Departamento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (colab of searchResults(); track colab.id) {
+                    <tr>
+                      <td>{{ colab.nome }}</td>
+                      <td>{{ colab.matricula }}</td>
+                      <td>{{ colab.cargo }}</td>
+                      <td>{{ colab.departamento }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="modal-footer modal-footer-between">
+        <app-button variant="danger" (clicked)="deletarPesquisa()">Deletar</app-button>
+        <div class="footer-actions">
+          <app-button variant="primary" (clicked)="buscarColaboradores()" [loading]="searching()">Buscar</app-button>
+          @if (searchResults() !== null) {
+            <app-button variant="secondary" (clicked)="gerarRelatorio()">
+              <lucide-icon [img]="FileText" [size]="16"></lucide-icon>
+              <span>Gerar Relatório</span>
+            </app-button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

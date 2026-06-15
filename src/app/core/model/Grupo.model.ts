@@ -3,4 +3,6 @@ export interface Grupo {
   nome: string;
   descricao?: string;
   tagIds?: number[];
+  tokens?: string[];
+  criadoEm?: string;
 }
