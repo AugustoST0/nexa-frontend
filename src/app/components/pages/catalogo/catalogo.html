@@ -130,45 +130,75 @@
       </div>
 
       <div class="modal-body">
-        <div class="selects-row">
-          <div class="field">
-            <label>Tag 1</label>
-            <select [ngModel]="newTag1()" (ngModelChange)="newTag1.set($event)">
-              <option value="">Selecione...</option>
-              @for (tag of allTags(); track tag.id) {
-                <option [value]="tag.nome">{{ tag.nome }}</option>
+        <div class="builder-preview">
+          <span class="preview-label">Sua pesquisa:</span>
+          @if (newTokens().length === 0) {
+            <span class="builder-empty">Nenhum critério adicionado</span>
+          } @else {
+            <div class="builder-tokens">
+              @for (token of newTokens(); track $index) {
+                @if (isOperador(token)) {
+                  <span class="builder-token builder-token-op">
+                    <span class="pill-op">{{ token }}</span>
+                    <button type="button" class="token-remove" (click)="removeNewToken($index)" title="Remover">×</button>
+                  </span>
+                } @else {
+                  <span class="builder-token builder-token-tag">
+                    <span class="pill-tag">{{ token }}</span>
+                    <button type="button" class="token-remove" (click)="removeNewToken($index)" title="Remover">×</button>
+                  </span>
+                }
               }
-            </select>
-          </div>
-          <div class="field">
-            <label>Tag 2</label>
-            <select [ngModel]="newTag2()" (ngModelChange)="newTag2.set($event)">
-              <option value="">Selecione...</option>
-              @for (tag of allTags(); track tag.id) {
-                <option [value]="tag.nome">{{ tag.nome }}</option>
-              }
-            </select>
-          </div>
+            </div>
+          }
         </div>
 
-        <div class="field">
-          <label>Operador</label>
-          <select [ngModel]="newOperador()" (ngModelChange)="newOperador.set($event)">
-            @for (op of operadores; track op) {
-              <option [value]="op">{{ op }}</option>
+        <div class="builder-actions">
+          <button
+            type="button"
+            class="add-btn"
+            [class.active]="showTagSelect()"
+            [disabled]="!canAddTag()"
+            (click)="toggleTagSelect()"
+          >
+            + Tag
+          </button>
+          <button
+            type="button"
+            class="add-btn"
+            [class.active]="showOperadorButtons()"
+            [disabled]="!canAddOperador()"
+            (click)="toggleOperadorButtons()"
+          >
+            + Operador
+          </button>
+        </div>
+
+        @if (showTagSelect()) {
+          <select
+            class="inline-select"
+            [ngModel]="tagSelectValue()"
+            (ngModelChange)="addTagToken($event)"
+          >
+            <option value="">Selecione uma tag...</option>
+            @for (tag of allTags(); track tag.id) {
+              <option [value]="tag.nome">{{ tag.nome }}</option>
             }
           </select>
-        </div>
+        }
 
-        <div class="preview">
-          <span class="preview-label">Pré-visualização:</span>
-          <span class="preview-query">{{ newTag1() }} {{ newOperador() }} {{ newTag2() }}</span>
-        </div>
+        @if (showOperadorButtons()) {
+          <div class="operador-buttons">
+            @for (op of operadores; track op) {
+              <button type="button" class="op-btn" (click)="addOperadorToken(op)">{{ op }}</button>
+            }
+          </div>
+        }
       </div>
 
       <div class="modal-footer">
         <app-button variant="ghost" (clicked)="closeNewSearch()">Cancelar</app-button>
-        <app-button variant="primary" (clicked)="salvarPesquisa()">Salvar Pesquisa</app-button>
+        <app-button variant="primary" [disabled]="!canSave()" (clicked)="salvarPesquisa()">Salvar Pesquisa</app-button>
       </div>
     </div>
   </div>

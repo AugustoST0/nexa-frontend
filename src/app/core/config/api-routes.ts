@@ -38,10 +38,6 @@ export const TAG_ENDPOINTS = {
     CREATE: API_ROUTES.TAGS,
     UPDATE: (id: number) => `${API_ROUTES.TAGS}/${id}`,
     DELETE: (id: number) => `${API_ROUTES.TAGS}/${id}`,
-    GET_BY_GRUPO: (grupoId: number) => `${API_ROUTES.TAGS}/grupo/${grupoId}`,
-    GET_NOT_IN_GRUPO: (grupoId: number) => `${API_ROUTES.TAGS}/not-in-grupo/${grupoId}`,
-    LINK_TO_GRUPO: (tagId: number, grupoId: number) => `${API_ROUTES.TAGS}/${tagId}/grupo/${grupoId}`,
-    UNLINK_FROM_GRUPO: (tagId: number, grupoId: number) => `${API_ROUTES.TAGS}/${tagId}/grupo/${grupoId}`,
 } as const;
 
 export const COLABORADOR_ENDPOINTS = {

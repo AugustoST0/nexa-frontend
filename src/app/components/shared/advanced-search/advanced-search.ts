@@ -1,19 +1,24 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule, Save } from 'lucide-angular';
 import { TagService } from '../../../core/services/crud/tag-service';
 import { GrupoService } from '../../../core/services/crud/grupo-service';
-import { SearchValidationService } from '../../../core/services/search-validation.service';
-import { ErrorHandlerService } from '../../../core/services/error-handler.service';
+import { AlertService } from '../../../core/services/alert-service';
+import { ModalService } from '../../../core/services/modal-service';
+import { Tag } from '../../../core/model/Tag.model';
+import { Grupo } from '../../../core/model/Grupo.model';
+
+const OPERADORES = ['E', 'OU', 'NÃO POSSUI'];
 
 @Component({
   selector: 'app-advanced-search',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './advanced-search.html',
   styleUrls: ['./advanced-search.css'],
 })
-export class AdvancedSearchComponent {
+export class AdvancedSearchComponent implements OnInit {
   @Input() tokens: string[] = [];
   @Output() tokensChange = new EventEmitter<string[]>();
   @Output() search = new EventEmitter<string[]>();
@@ -21,276 +26,165 @@ export class AdvancedSearchComponent {
 
   private readonly tagService = inject(TagService);
   private readonly grupoService = inject(GrupoService);
-  private readonly validationService = inject(SearchValidationService);
-  private readonly errorHandler = inject(ErrorHandlerService);
+  private readonly alertService = inject(AlertService);
+  private readonly modalService = inject(ModalService);
 
-  allTags: string[] = [];
-  allGrupos: string[] = [];
-  grupoTagsMap: Map<string, string[]> = new Map();
-  filteredTags: string[] = [];
-  filteredGrupos: string[] = [];
-  tagSearchInput: string = '';
-  grupoSearchInput: string = '';
-  showTagDropdown: boolean = false;
-  showGrupoDropdown: boolean = false;
-  showOperatorDropdown: boolean = false;
-  validationMessage: string = '';
-  operatorValidationMessage: string = '';
-  tagsLoading: boolean = false;
-  gruposLoading: boolean = false;
-  searchMode: 'tags' | 'grupos' = 'tags';
+  readonly Save = Save;
+  readonly operadores = OPERADORES;
 
-  operators = ['E', 'OU', 'NÃO POSSUI'];
+  allTags = signal<Tag[]>([]);
+  tokensAvancados = signal<string[]>([]);
+  showTagSelect = signal(false);
+  showOperadorButtons = signal(false);
+  tagSelectValue = signal('');
+  pesquisasSalvas = signal<Grupo[]>([]);
+
+  canAddTag = computed(() => {
+    const tokens = this.tokensAvancados();
+    return tokens.length === 0 || this.isOperador(tokens[tokens.length - 1]);
+  });
+
+  canAddOperador = computed(() => {
+    const tokens = this.tokensAvancados();
+    return tokens.length > 0 && !this.isOperador(tokens[tokens.length - 1]);
+  });
+
+  canSearch = computed(() => {
+    const tokens = this.tokensAvancados();
+    return tokens.length >= 1 && !this.isOperador(tokens[tokens.length - 1]);
+  });
+
+  canSave = computed(() => {
+    const tokens = this.tokensAvancados();
+    return tokens.length >= 3 && !this.isOperador(tokens[tokens.length - 1]);
+  });
 
   ngOnInit(): void {
-    // Carregar tags apenas quando o dropdown for aberto
+    this.tokensAvancados.set(this.tokens ?? []);
+    this.loadTags();
+    this.loadPesquisasSalvas();
+  }
+
+  loadPesquisasSalvas(): void {
+    this.grupoService.getAll().subscribe({
+      next: (grupos) => {
+        const recentes = grupos
+          .filter((g) => g.tokens && g.tokens.length > 0)
+          .sort((a, b) => {
+            if (!a.criadoEm && !b.criadoEm) return 0;
+            if (!a.criadoEm) return 1;
+            if (!b.criadoEm) return -1;
+            return b.criadoEm.localeCompare(a.criadoEm);
+          })
+          .slice(0, 5);
+        this.pesquisasSalvas.set(recentes);
+      },
+      error: (error) => {
+        console.error('Erro ao carregar pesquisas salvas:', error);
+        this.pesquisasSalvas.set([]);
+      },
+    });
+  }
+
+  selecionarPesquisa(id: string): void {
+    if (!id) return;
+    const grupo = this.pesquisasSalvas().find((g) => String(g.id) === id);
+    if (!grupo) return;
+
+    if (this.tokensAvancados().length === 0) {
+      this.aplicarPesquisa(grupo);
+      return;
+    }
+
+    this.modalService
+      .showConfirm({
+        title: 'Substituir busca',
+        message: 'Substituir a busca atual pelos tokens desta pesquisa?',
+        confirmText: 'Substituir',
+        cancelText: 'Cancelar',
+      })
+      .subscribe((confirmed) => {
+        if (confirmed) {
+          this.aplicarPesquisa(grupo);
+        }
+      });
+  }
+
+  private aplicarPesquisa(grupo: Grupo): void {
+    this.tokensAvancados.set([...(grupo.tokens ?? [])]);
+    this.tokensChange.emit(this.tokensAvancados());
+  }
+
+  salvarPesquisa(): void {
+    if (!this.canSave()) return;
+    const tokens = this.tokensAvancados();
+    this.grupoService.create({ nome: tokens.join(' '), tokens }).subscribe({
+      next: () => {
+        this.alertService.success('Pesquisa salva com sucesso');
+        this.loadPesquisasSalvas();
+      },
+      error: (error) => {
+        this.alertService.error('Erro ao salvar pesquisa');
+        console.error('Erro ao salvar pesquisa:', error);
+      },
+    });
+  }
+
+  isOperador(token: string): boolean {
+    return OPERADORES.includes(token);
   }
 
   loadTags(): void {
-    if (this.allTags.length > 0) {
-      return; // Já foram carregadas
-    }
-
-    this.tagsLoading = true;
     this.tagService.getAll().subscribe({
-      next: (tags) => {
-        this.allTags = tags.map((tag) => tag.nome);
-        this.filteredTags = this.allTags;
-        this.tagsLoading = false;
-      },
+      next: (tags) => this.allTags.set(tags),
       error: (error) => {
         console.error('Erro ao carregar tags:', error);
-        this.allTags = [];
-        this.filteredTags = [];
-        this.tagsLoading = false;
+        this.allTags.set([]);
       },
     });
   }
 
-  loadGrupos(): void {
-    if (this.allGrupos.length > 0) {
-      return; // Já foram carregadas
-    }
-
-    this.gruposLoading = true;
-    this.grupoService.getAll().subscribe({
-      next: (grupos) => {
-        this.allGrupos = grupos.map((grupo) => grupo.nome);
-        this.filteredGrupos = this.allGrupos;
-        
-        // Carregar tags de cada grupo
-        grupos.forEach((grupo) => {
-          this.tagService.getByGrupoId(grupo.id!).subscribe({
-            next: (tags) => {
-              const tagNames = tags.map((tag) => tag.nome);
-              this.grupoTagsMap.set(grupo.nome, tagNames);
-            },
-            error: (error) => {
-              console.error(`Erro ao carregar tags do grupo ${grupo.nome}:`, error);
-              this.grupoTagsMap.set(grupo.nome, []);
-            },
-          });
-        });
-        
-        this.gruposLoading = false;
-      },
-      error: (error) => {
-        console.error('Erro ao carregar grupos:', error);
-        this.allGrupos = [];
-        this.filteredGrupos = [];
-        this.gruposLoading = false;
-      },
-    });
+  toggleTagSelect(): void {
+    this.showTagSelect.update((v) => !v);
+    this.showOperadorButtons.set(false);
   }
 
-  onTagSearchChange(value: string): void {
-    this.tagSearchInput = value;
-    this.filteredTags = this.allTags.filter((tag) =>
-      tag.toLowerCase().includes(value.toLowerCase())
-    );
+  toggleOperadorButtons(): void {
+    this.showOperadorButtons.update((v) => !v);
+    this.showTagSelect.set(false);
   }
 
-  onGrupoSearchChange(value: string): void {
-    this.grupoSearchInput = value;
-    this.filteredGrupos = this.allGrupos.filter((grupo) =>
-      grupo.toLowerCase().includes(value.toLowerCase())
-    );
+  addTagToken(nome: string): void {
+    if (!nome || !this.canAddTag()) return;
+    this.tokensAvancados.update((t) => [...t, nome]);
+    this.showTagSelect.set(false);
+    this.tagSelectValue.set('');
+    this.tokensChange.emit(this.tokensAvancados());
   }
 
-  addTag(tag: string): void {
-    this.tokens = [...this.tokens, tag];
-    this.tagSearchInput = '';
-    this.filteredTags = this.allTags;
-    this.showTagDropdown = false;
-    this.tokensChange.emit(this.tokens);
-    this.validationMessage = '';
-  }
-
-  addGrupo(grupo: string): void {
-    this.tokens = [...this.tokens, `Grupo:${grupo}`];
-    this.grupoSearchInput = '';
-    this.filteredGrupos = this.allGrupos;
-    this.showGrupoDropdown = false;
-    this.tokensChange.emit(this.tokens);
-    this.validationMessage = '';
-  }
-
-  addOperator(operator: string): void {
-    if (this.tokens.length === 0) {
-      this.operatorValidationMessage =
-        'Selecione uma tag antes de adicionar um operador';
-      this.showOperatorDropdown = false;
-      return;
-    }
-
-    const lastToken = this.tokens[this.tokens.length - 1];
-    if (this.operators.includes(lastToken)) {
-      this.operatorValidationMessage =
-        'Não é possível adicionar um operador após outro operador. Selecione uma tag primeiro.';
-      this.showOperatorDropdown = false;
-      return;
-    }
-
-    this.tokens = [...this.tokens, operator];
-    this.showOperatorDropdown = false;
-    this.tokensChange.emit(this.tokens);
-    this.operatorValidationMessage = '';
+  addOperadorToken(op: string): void {
+    if (!this.canAddOperador()) return;
+    this.tokensAvancados.update((t) => [...t, op]);
+    this.showOperadorButtons.set(false);
+    this.tokensChange.emit(this.tokensAvancados());
   }
 
   removeToken(index: number): void {
-    this.tokens = this.tokens.filter((_, i) => i !== index);
-    this.tokensChange.emit(this.tokens);
+    this.tokensAvancados.update((t) => t.filter((_, i) => i !== index));
+    this.tokensChange.emit(this.tokensAvancados());
   }
 
   onSearch(): void {
-    console.log('🔍 [ADVANCED-SEARCH] Botão Buscar clicado! Tokens:', this.tokens);
-    
-    // Verificar se há tokens selecionados
-    if (this.tokens.length === 0) {
-      this.validationMessage = 'Selecione pelo menos uma tag ou grupo para buscar';
-      console.warn('⚠️ [ADVANCED-SEARCH] Nenhum token selecionado');
-      return;
-    }
-    
-    try {
-      // Validar tokens
-      this.validationService.validateTokens(this.tokens);
-      this.validationMessage = '';
-      
-      console.log('✅ [ADVANCED-SEARCH] Validação OK. Emitindo evento search com tokens:', this.tokens);
-      
-      // Emitir os tokens originais (sem expandir grupos)
-      // A expansão será feita no backend
-      this.search.emit(this.tokens);
-    } catch (error: any) {
-      console.error('❌ [ADVANCED-SEARCH] Erro na validação:', error);
-      this.validationMessage = this.errorHandler.getErrorMessage(error);
-    }
-  }
-
-  private expandGruposInTokens(tokens: string[]): string[] {
-    const expandedTokens: string[] = [];
-    let i = 0;
-
-    while (i < tokens.length) {
-      const token = tokens[i];
-
-      if (token.startsWith('Grupo:')) {
-        const grupoName = token.substring(6); // Remove "Grupo:" prefix
-        const grupoTags = this.getGrupoTags(grupoName);
-
-        // Verificar se o próximo token é "NÃO POSSUI"
-        if (i + 1 < tokens.length && tokens[i + 1] === 'NÃO POSSUI') {
-          // Caso: Tag NÃO POSSUI Grupo
-          // Adicionar o token anterior (tag) se existir
-          if (expandedTokens.length > 0) {
-            // Adicionar "NÃO POSSUI" seguido de todas as tags do grupo com "E"
-            expandedTokens.push('NÃO POSSUI');
-            grupoTags.forEach((tag, index) => {
-              expandedTokens.push(tag);
-              if (index < grupoTags.length - 1) {
-                expandedTokens.push('E');
-              }
-            });
-            i += 2; // Pular o token "Grupo:" e "NÃO POSSUI"
-            continue;
-          }
-        } else {
-          // Caso normal: Grupo é tratado como agregação de tags
-          grupoTags.forEach((tag, index) => {
-            expandedTokens.push(tag);
-            if (index < grupoTags.length - 1) {
-              expandedTokens.push('E');
-            }
-          });
-        }
-      } else {
-        expandedTokens.push(token);
-      }
-
-      i++;
-    }
-
-    return expandedTokens;
-  }
-
-  private getGrupoTags(grupoName: string): string[] {
-    return this.grupoTagsMap.get(grupoName) || [];
+    if (!this.canSearch()) return;
+    this.search.emit(this.tokensAvancados());
   }
 
   onClear(): void {
-    this.tokens = [];
-    this.tagSearchInput = '';
-    this.validationMessage = '';
-    this.operatorValidationMessage = '';
-    this.filteredTags = this.allTags;
-    this.showTagDropdown = false;
-    this.showOperatorDropdown = false;
-    this.tokensChange.emit(this.tokens);
+    this.tokensAvancados.set([]);
+    this.showTagSelect.set(false);
+    this.showOperadorButtons.set(false);
+    this.tagSelectValue.set('');
+    this.tokensChange.emit([]);
     this.clear.emit();
-  }
-
-  getAvailableTags(): string[] {
-    return this.allTags.filter((tag) => !this.tokens.includes(tag));
-  }
-
-  toggleTagDropdown(): void {
-    this.showTagDropdown = !this.showTagDropdown;
-    this.showGrupoDropdown = false;
-    this.showOperatorDropdown = false;
-    if (this.showTagDropdown) {
-      if (this.allTags.length === 0) {
-        this.loadTags();
-      }
-      this.filteredTags = this.allTags.filter(
-        (tag) => !this.tokens.includes(tag)
-      );
-    }
-  }
-
-  toggleGrupoDropdown(): void {
-    this.showGrupoDropdown = !this.showGrupoDropdown;
-    this.showTagDropdown = false;
-    this.showOperatorDropdown = false;
-    if (this.showGrupoDropdown) {
-      if (this.allGrupos.length === 0) {
-        this.loadGrupos();
-      }
-      this.filteredGrupos = this.allGrupos.filter(
-        (grupo) => !this.tokens.includes(`Grupo:${grupo}`)
-      );
-    }
-  }
-
-  toggleOperatorDropdown(): void {
-    this.showOperatorDropdown = !this.showOperatorDropdown;
-    this.showTagDropdown = false;
-    this.showGrupoDropdown = false;
-  }
-
-  closeDropdowns(): void {
-    this.showTagDropdown = false;
-    this.showGrupoDropdown = false;
-    this.showOperatorDropdown = false;
   }
 }

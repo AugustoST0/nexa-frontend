@@ -1,180 +1,95 @@
-<div class="advanced-search" (click)="closeDropdowns()">
-  <!-- Selectors Section -->
-  <div class="selectors-section">
-    <!-- Tag Selector -->
-    <div class="selector-group">
-      <label for="tag-selector">Seletor de Tags</label>
-      <div class="selector-wrapper">
-        <div class="selector-input-group">
-          <input
-            id="tag-selector"
-            type="text"
-            [(ngModel)]="tagSearchInput"
-            (input)="onTagSearchChange($event.target.value)"
-            (click)="toggleTagDropdown(); $event.stopPropagation()"
-            placeholder="Buscar tags..."
-            class="selector-input"
-          />
-          <button
-            (click)="toggleTagDropdown(); $event.stopPropagation()"
-            class="selector-toggle-btn"
-            type="button"
-          >
-            ▼
-          </button>
-        </div>
-
-        <div
-          *ngIf="showTagDropdown"
-          class="dropdown-menu"
-          (click)="$event.stopPropagation()"
-        >
-          <div
-            *ngFor="let tag of filteredTags"
-            (click)="addTag(tag)"
-            class="dropdown-item"
-            [class.disabled]="tokens.includes(tag)"
-          >
-            {{ tag }}
-          </div>
-          <div *ngIf="filteredTags.length === 0" class="dropdown-empty">
-            Nenhuma tag encontrada
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Grupo Selector -->
-    <div class="selector-group">
-      <label for="grupo-selector">Seletor de Grupos</label>
-      <div class="selector-wrapper">
-        <div class="selector-input-group">
-          <input
-            id="grupo-selector"
-            type="text"
-            [(ngModel)]="grupoSearchInput"
-            (input)="onGrupoSearchChange($event.target.value)"
-            (click)="toggleGrupoDropdown(); $event.stopPropagation()"
-            placeholder="Buscar grupos..."
-            class="selector-input"
-          />
-          <button
-            (click)="toggleGrupoDropdown(); $event.stopPropagation()"
-            class="selector-toggle-btn"
-            type="button"
-          >
-            ▼
-          </button>
-        </div>
-
-        <div
-          *ngIf="showGrupoDropdown"
-          class="dropdown-menu"
-          (click)="$event.stopPropagation()"
-        >
-          <div
-            *ngFor="let grupo of filteredGrupos"
-            (click)="addGrupo(grupo)"
-            class="dropdown-item"
-            [class.disabled]="tokens.includes('Grupo:' + grupo)"
-          >
-            {{ grupo }}
-          </div>
-          <div *ngIf="filteredGrupos.length === 0" class="dropdown-empty">
-            Nenhum grupo encontrado
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Operator Selector with Tooltip -->
-    <div class="selector-group">
-      <div class="label-with-tooltip">
-        <label for="operator-selector">Seletor de Operadores</label>
-        <div class="tooltip-icon" title="Tooltip de Operadores">
-          <span class="tooltip-text">?</span>
-          <div class="tooltip-content">
-            <strong>Operadores Disponíveis:</strong>
-            <ul>
-              <li><strong>E</strong> - Retorna colaboradores que possuem TODAS as tags</li>
-              <li><strong>OU</strong> - Retorna colaboradores que possuem QUALQUER UMA das tags</li>
-              <li><strong>NÃO POSSUI</strong> - Exclui colaboradores que possuem a tag</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="selector-wrapper">
-        <button
-          (click)="toggleOperatorDropdown(); $event.stopPropagation()"
-          class="selector-toggle-btn full-width"
-          type="button"
-        >
-          Selecionar Operador ▼
-        </button>
-
-        <div
-          *ngIf="showOperatorDropdown"
-          class="dropdown-menu"
-          (click)="$event.stopPropagation()"
-        >
-          <div
-            *ngFor="let operator of operators"
-            (click)="addOperator(operator)"
-            class="dropdown-item"
-          >
-            {{ operator }}
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="operatorValidationMessage" class="validation-message">
-        {{ operatorValidationMessage }}
-      </div>
-    </div>
+<div class="advanced-search">
+  <!-- Pesquisas salvas -->
+  <div class="pesquisas-salvas">
+    <span class="pesquisas-label">Pesquisas Salvas</span>
+    <select
+      #pesquisaSelect
+      class="pesquisas-select"
+      (change)="selecionarPesquisa(pesquisaSelect.value); pesquisaSelect.value = ''"
+    >
+      <option value="">Selecionar uma pesquisa salva...</option>
+      @for (p of pesquisasSalvas(); track p.id) {
+        <option [value]="p.id">{{ p.nome }}</option>
+      }
+    </select>
   </div>
 
-  <!-- Search Query Display -->
-  <div class="search-query-section">
-    <label>Sua Busca:</label>
-    <div class="tokens-list">
-      <div *ngFor="let token of tokens" class="token-badge">
-        <span>{{ token }}</span>
+  <!-- Preview da query -->
+  <div class="builder-preview">
+    <span class="preview-label">Sua busca:</span>
+    @if (tokensAvancados().length === 0) {
+      <span class="builder-empty">Nenhum filtro adicionado</span>
+    } @else {
+      <div class="builder-tokens">
+        @for (token of tokensAvancados(); track $index) {
+          @if (isOperador(token)) {
+            <span class="builder-token">
+              <span class="pill-op">{{ token }}</span>
+              <button type="button" class="token-remove" (click)="removeToken($index)" title="Remover">×</button>
+            </span>
+          } @else {
+            <span class="builder-token">
+              <span class="pill-tag">{{ token }}</span>
+              <button type="button" class="token-remove" (click)="removeToken($index)" title="Remover">×</button>
+            </span>
+          }
+        }
       </div>
-      <div *ngIf="tokens.length === 0" class="empty-query">
-        Nenhum critério adicionado
-      </div>
+    }
+  </div>
+
+  <!-- Linha de adição -->
+  <div class="builder-actions">
+    <button
+      type="button"
+      class="add-btn"
+      [class.active]="showTagSelect()"
+      [disabled]="!canAddTag()"
+      (click)="toggleTagSelect()"
+    >
+      + Tag
+    </button>
+    <button
+      type="button"
+      class="add-btn"
+      [class.active]="showOperadorButtons()"
+      [disabled]="!canAddOperador()"
+      (click)="toggleOperadorButtons()"
+    >
+      + Operador
+    </button>
+  </div>
+
+  @if (showTagSelect()) {
+    <select
+      class="inline-select"
+      [ngModel]="tagSelectValue()"
+      (ngModelChange)="addTagToken($event)"
+    >
+      <option value="">Selecione uma tag...</option>
+      @for (tag of allTags(); track tag.id) {
+        <option [value]="tag.nome">{{ tag.nome }}</option>
+      }
+    </select>
+  }
+
+  @if (showOperadorButtons()) {
+    <div class="operador-buttons">
+      @for (op of operadores; track op) {
+        <button type="button" class="op-btn" (click)="addOperadorToken(op)">{{ op }}</button>
+      }
     </div>
-  </div>
+  }
 
-  <!-- Examples Tooltip -->
-  <div class="examples-tooltip">
-    <div class="tooltip-icon" title="Exemplos de Buscas">
-      <span class="tooltip-text">?</span>
-      <div class="tooltip-content">
-        <strong>Exemplos de Buscas:</strong>
-        <ul>
-          <li><code>Tag1</code> - Busca colaboradores com a tag "Tag1"</li>
-          <li><code>Tag1 E Tag2</code> - Busca colaboradores com AMBAS as tags</li>
-          <li><code>Tag1 OU Tag2</code> - Busca colaboradores com uma das tags</li>
-          <li><code>Tag1 E Tag2 NÃO POSSUI Tag3</code> - Busca com exclusão</li>
-          <li><code>Grupo:Grupo1</code> - Busca colaboradores com TODAS as tags do Grupo1</li>
-          <li><code>Grupo:Grupo1 E Grupo:Grupo2</code> - Busca colaboradores com TODAS as tags de ambos os grupos</li>
-          <li><code>Grupo:Grupo1 OU Grupo:Grupo2</code> - Busca colaboradores com TODAS as tags de um dos grupos</li>
-          <li><code>Grupo:Grupo1 NÃO POSSUI Grupo:Grupo2</code> - Exclui colaboradores com tags do Grupo2</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- Validation Message -->
-  <div *ngIf="validationMessage" class="validation-message">
-    {{ validationMessage }}
-  </div>
-
-  <!-- Search Actions -->
-  <div class="search-actions" (click)="$event.stopPropagation()">
-    <button type="button" (click)="onSearch(); $event.stopPropagation()" class="btn btn-primary">Buscar</button>
-    <button type="button" (click)="onClear(); $event.stopPropagation()" class="btn btn-secondary">Limpar</button>
+  <!-- Ações -->
+  <div class="search-actions">
+    <button type="button" (click)="onSearch()" [disabled]="!canSearch()" class="btn btn-primary">Buscar</button>
+    <button type="button" (click)="onClear(); pesquisaSelect.value = ''" class="btn btn-secondary">Limpar</button>
+    @if (canSave()) {
+      <button type="button" (click)="salvarPesquisa()" class="btn-save">
+        <lucide-icon [img]="Save" [size]="16"></lucide-icon>
+        <span>Salvar Pesquisa</span>
+      </button>
+    }
   </div>
 </div>

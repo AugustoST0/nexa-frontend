@@ -1,17 +1,19 @@
 <div class="colaborador-filter">
   <!-- Mode selector -->
-  <div class="mode-selector">
+  <div class="tabs">
     <button
+      type="button"
+      class="tab"
       [class.active]="searchMode === 'common'"
       (click)="switchMode('common')"
-      class="mode-button"
     >
       Busca Comum
     </button>
     <button
+      type="button"
+      class="tab"
       [class.active]="searchMode === 'advanced'"
       (click)="switchMode('advanced')"
-      class="mode-button"
     >
       Busca Avançada
     </button>

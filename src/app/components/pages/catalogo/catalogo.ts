@@ -60,9 +60,27 @@ export class Catalogo implements OnInit {
 
   // Modal "Nova Pesquisa"
   showNewSearch = signal(false);
-  newTag1 = signal('');
-  newOperador = signal('E');
-  newTag2 = signal('');
+  newTokens = signal<string[]>([]);
+  showTagSelect = signal(false);
+  showOperadorButtons = signal(false);
+  tagSelectValue = signal('');
+
+  canAddTag = computed(() => {
+    const tokens = this.newTokens();
+    return tokens.length === 0 || this.isOperador(tokens[tokens.length - 1]);
+  });
+
+  canAddOperador = computed(() => {
+    const tokens = this.newTokens();
+    return tokens.length > 0 && !this.isOperador(tokens[tokens.length - 1]);
+  });
+
+  canSave = computed(() => {
+    const tokens = this.newTokens();
+    return tokens.length >= 3 && !this.isOperador(tokens[tokens.length - 1]);
+  });
+
+  previewNome = computed(() => this.newTokens().join(' '));
 
   // Modal "Ver Pesquisa"
   showSavedSearch = signal(false);
@@ -193,9 +211,10 @@ export class Catalogo implements OnInit {
 
   // ===== Aba Pesquisas =====
   openNewSearch() {
-    this.newTag1.set('');
-    this.newOperador.set('E');
-    this.newTag2.set('');
+    this.newTokens.set([]);
+    this.showTagSelect.set(false);
+    this.showOperadorButtons.set(false);
+    this.tagSelectValue.set('');
     this.showNewSearch.set(true);
   }
 
@@ -203,18 +222,41 @@ export class Catalogo implements OnInit {
     this.showNewSearch.set(false);
   }
 
-  salvarPesquisa() {
-    const tag1 = this.newTag1();
-    const operador = this.newOperador();
-    const tag2 = this.newTag2();
+  toggleTagSelect() {
+    this.showTagSelect.update((v) => !v);
+    this.showOperadorButtons.set(false);
+  }
 
-    if (!tag1 || !operador || !tag2) {
-      this.alertService.warning('Selecione as duas tags e o operador');
+  toggleOperadorButtons() {
+    this.showOperadorButtons.update((v) => !v);
+    this.showTagSelect.set(false);
+  }
+
+  addTagToken(nome: string) {
+    if (!nome || !this.canAddTag()) return;
+    this.newTokens.update((t) => [...t, nome]);
+    this.showTagSelect.set(false);
+    this.tagSelectValue.set('');
+  }
+
+  addOperadorToken(op: string) {
+    if (!this.canAddOperador()) return;
+    this.newTokens.update((t) => [...t, op]);
+    this.showOperadorButtons.set(false);
+  }
+
+  removeNewToken(index: number) {
+    this.newTokens.update((t) => t.filter((_, i) => i !== index));
+  }
+
+  salvarPesquisa() {
+    if (!this.canSave()) {
+      this.alertService.warning('A pesquisa deve ter ao menos uma tag, um operador e outra tag');
       return;
     }
 
-    const tokens = [tag1, operador, tag2];
-    const nome = `${tag1} ${operador} ${tag2}`;
+    const tokens = this.newTokens();
+    const nome = tokens.join(' ');
 
     this.grupoService.create({ nome, tokens }).subscribe({
       next: () => {
@@ -296,7 +338,7 @@ export class Catalogo implements OnInit {
   onDeletePesquisa(grupo: Grupo) {
     this.modalService.showConfirm({
       title: 'Excluir Pesquisa',
-      message: `Tem certeza que deseja excluir a pesquisa "${grupo.nome}"?`,
+      message: `Tem certeza que deseja excluir a pesquisa "${grupo.nome}"? Os relatórios já gerados a partir dela serão mantidos.`,
       confirmText: 'Excluir',
       cancelText: 'Cancelar',
       type: 'danger',
