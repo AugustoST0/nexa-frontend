@@ -7,7 +7,6 @@ import { TagService } from '../../../core/services/crud/tag-service';
 import { AlertService } from '../../../core/services/alert-service';
 import { ColaboradorCreateDTO } from '../../../core/dto/ColaboradorCreateDTO';
 import { ColaboradorUpdateDTO } from '../../../core/dto/ColaboradorUpdateDTO';
-import { ColaboradorFilterResponseDTO } from '../../../core/dto/ColaboradorFilterResponseDTO';
 import { Tag } from '../../../core/model/Tag.model';
 import { ColaboradorWithCalcs } from '../../../core/model/ColaboradorWithCalcs.model';
 import { ButtonComponent } from '../../ui/button/button';
@@ -37,12 +36,10 @@ export class ColaboradorForm implements OnInit {
   selectedTags = signal<number[]>([]);
   showTagsDropdown = signal(false);
   tagSearchInput = signal('');
-  availableSupervisores = signal<ColaboradorFilterResponseDTO[]>([]);
 
   ngOnInit() {
     this.initializeForm();
     this.loadTags();
-    this.loadSupervisores();
 
     this.route.params.subscribe(params => {
       const id = params['id'];
@@ -64,7 +61,6 @@ export class ColaboradorForm implements OnInit {
       departamento: ['', [Validators.required, Validators.maxLength(100)]],
       dataNascimento: ['', Validators.required],
       dataAdmissao: ['', Validators.required],
-      supervisorId: [null],
       ativo: [true],
     });
   }
@@ -135,21 +131,6 @@ export class ColaboradorForm implements OnInit {
     });
   }
 
-  loadSupervisores() {
-    this.colaboradorService.getSupervisores().subscribe({
-      next: (supervisores) => {
-        // Filtrar o próprio colaborador se estiver editando
-        const filtered = this.isEditMode() 
-          ? supervisores.filter(s => s.id !== this.colaboradorId())
-          : supervisores;
-        this.availableSupervisores.set(filtered);
-      },
-      error: (err) => {
-        console.error('Erro ao carregar supervisores:', err);
-      },
-    });
-  }
-
   loadColaborador(id: number) {
     this.loading.set(true);
     this.colaboradorService.getById(id).subscribe({
@@ -163,16 +144,12 @@ export class ColaboradorForm implements OnInit {
           departamento: colaborador.departamento,
           dataNascimento: colaborador.dataNascimento,
           dataAdmissao: colaborador.dataAdmissao,
-          supervisorId: colaborador.supervisorId,
           ativo: colaborador.ativo,
         });
 
         if (colaborador.tags) {
           this.selectedTags.set(colaborador.tags.map(t => t.id!));
         }
-
-        // Recarregar supervisores excluindo o colaborador atual
-        this.loadSupervisores();
 
         this.loading.set(false);
       },

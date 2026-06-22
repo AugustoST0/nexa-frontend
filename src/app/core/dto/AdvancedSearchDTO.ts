@@ -1,3 +1,6 @@
 export interface AdvancedSearchDTO {
-  tokens: string[];
+  tokens?: string[];
+  supervisorId?: number;
+  dataAdmissaoInicio?: string;
+  dataAdmissaoFim?: string;
 }

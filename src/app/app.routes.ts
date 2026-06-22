@@ -6,6 +6,7 @@ import { ColaboradorForm } from './components/pages/colaborador-form/colaborador
 import { Catalogo } from './components/pages/catalogo/catalogo';
 import { Home } from './components/pages/home/home';
 import { Relatorios } from './components/pages/relatorios/relatorios';
+import { TiposSupervisor } from './components/pages/tipos-supervisor/tipos-supervisor';
 import { Layout } from './components/shared/layout/layout';
 import { AuthGuard } from './core/guards/auth-guard';
 import { AdminGuard } from './core/guards/admin-guard';
@@ -25,6 +26,7 @@ export const routes: Routes = [
             { path: 'catalogo', component: Catalogo },
             { path: 'relatorios', component: Relatorios },
             { path: 'usuarios/cadastro', component: Cadastro, canActivate: [AdminGuard] },
+            { path: 'admin/tipos-supervisor', component: TiposSupervisor, canActivate: [AdminGuard] },
         ]
     },
     { path: '**', redirectTo: '/login' }

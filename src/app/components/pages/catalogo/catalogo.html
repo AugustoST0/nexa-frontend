@@ -49,7 +49,7 @@
           @for (tag of filteredTags(); track tag.id) {
             <app-card variant="bordered" [hoverable]="true" class="tag-card">
               <div class="tag-header">
-                <app-badge variant="primary" size="md">{{ tag.nome }}</app-badge>
+                <app-badge variant="primary" size="md" [title]="tag.nome">{{ tag.nome }}</app-badge>
                 <div class="tag-actions">
                   <app-button variant="ghost" size="sm" (clicked)="onEditTag(tag)" title="Editar">
                     <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
@@ -175,16 +175,12 @@
         </div>
 
         @if (showTagSelect()) {
-          <select
-            class="inline-select"
-            [ngModel]="tagSelectValue()"
-            (ngModelChange)="addTagToken($event)"
-          >
-            <option value="">Selecione uma tag...</option>
-            @for (tag of allTags(); track tag.id) {
-              <option [value]="tag.nome">{{ tag.nome }}</option>
-            }
-          </select>
+          <app-searchable-select
+            [options]="tagSelectOptions()"
+            placeholder="Selecione uma tag..."
+            [value]="tagSelectValue()"
+            (valueChange)="addTagToken($event)"
+          ></app-searchable-select>
         }
 
         @if (showOperadorButtons()) {
@@ -194,6 +190,29 @@
             }
           </div>
         }
+
+        <div class="extra-filters">
+          <span class="extra-filters-label">Filtros Adicionais (opcional)</span>
+          <div class="field">
+            <label>Supervisor</label>
+            <app-searchable-select
+              [options]="supervisorOptions()"
+              placeholder="Qualquer supervisor"
+              [value]="formSupervisorId()"
+              (valueChange)="formSupervisorId.set($event)"
+            ></app-searchable-select>
+          </div>
+          <div class="filters-row">
+            <div class="field">
+              <label>Admitido após</label>
+              <input type="date" [ngModel]="formDataInicio()" (ngModelChange)="formDataInicio.set($event)" />
+            </div>
+            <div class="field">
+              <label>Admitido até</label>
+              <input type="date" [ngModel]="formDataFim()" (ngModelChange)="formDataFim.set($event)" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="modal-footer">

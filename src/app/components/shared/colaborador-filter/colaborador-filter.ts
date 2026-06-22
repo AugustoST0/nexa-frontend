@@ -1,8 +1,9 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Output, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ColaboradorService } from '../../../core/services/crud/colaborador-service';
 import { ColaboradorFilterResponseDTO } from '../../../core/dto/ColaboradorFilterResponseDTO';
+import { AdvancedSearchDTO } from '../../../core/dto/AdvancedSearchDTO';
 import { SimpleSearchDTO } from '../../../core/dto/SimpleSearchDTO';
 import { CommonSearchComponent } from '../common-search/common-search';
 import { AdvancedSearchComponent } from '../advanced-search/advanced-search';
@@ -28,6 +29,8 @@ export class ColaboradorFilterComponent {
   private readonly errorHandler = inject(ErrorHandlerService);
   private readonly rateLimiter = inject(RateLimiterService);
   private readonly cdr = inject(ChangeDetectorRef);
+
+  @Output() gerenciarSupervisao = new EventEmitter<ColaboradorFilterResponseDTO>();
 
   searchMode: 'common' | 'advanced' = 'common';
   resultados: ColaboradorFilterResponseDTO[] = [];
@@ -103,11 +106,10 @@ export class ColaboradorFilterComponent {
     this.mensagem = '';
   }
 
-  onAdvancedSearch(tokens: string[]): void {
+  onAdvancedSearch(params: AdvancedSearchDTO): void {
     console.log('🔍 [COLABORADOR-FILTER] onAdvancedSearch chamado!');
-    console.log('🔍 [COLABORADOR-FILTER] Tokens recebidos:', tokens);
-    console.log('🔍 [COLABORADOR-FILTER] Quantidade de tokens:', tokens.length);
-    
+    console.log('🔍 [COLABORADOR-FILTER] Parâmetros recebidos:', params);
+
     // Verificar rate limiting
     if (!this.rateLimiter.canMakeRequest()) {
       const resetTime = this.rateLimiter.getResetTime();
@@ -131,7 +133,7 @@ export class ColaboradorFilterComponent {
       this.mensagem = 'Timeout na busca - verifique a conexão com o servidor';
     }, 30000); // 30 segundos
 
-    this.colaboradorService.searchAdvanced({ tokens }).subscribe({
+    this.colaboradorService.searchAdvanced(params).subscribe({
       next: (results) => {
         clearTimeout(timeoutId);
         console.log('✅ [COLABORADOR-FILTER] Busca avançada concluída');

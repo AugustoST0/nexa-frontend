@@ -126,15 +126,20 @@ export class ColaboradorService {
     // 2. Validar autenticação
     this.validateAuthToken();
 
-    // 3. Validar tokens
-    this.validationService.validateTokens(searchDTO.tokens);
+    // 3. Validar/sanitizar tokens (podem estar ausentes quando a busca usa só filtros extras)
+    const tokens = searchDTO.tokens ?? [];
+    let sanitizedTokens: string[] = [];
+    if (tokens.length > 0) {
+      this.validationService.validateTokens(tokens);
+      sanitizedTokens = this.validationService.sanitizeTokens(tokens);
+    }
 
-    // 4. Sanitizar tokens
-    const sanitizedTokens = this.validationService.sanitizeTokens(searchDTO.tokens);
-
-    // 5. Preparar body da requisição
+    // 4. Preparar body da requisição (inclui filtros opcionais quando definidos)
     const requestBody: AdvancedSearchDTO = {
-      tokens: sanitizedTokens
+      tokens: sanitizedTokens,
+      supervisorId: searchDTO.supervisorId,
+      dataAdmissaoInicio: searchDTO.dataAdmissaoInicio,
+      dataAdmissaoFim: searchDTO.dataAdmissaoFim,
     };
 
     // 6. Fazer requisição

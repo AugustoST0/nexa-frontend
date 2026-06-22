@@ -1,0 +1,33 @@
+<div class="ss-wrapper">
+  <div class="ss-input-group">
+    <input
+      type="text"
+      class="ss-input"
+      [value]="isOpen() ? search() : selectedLabel"
+      [placeholder]="placeholder"
+      (focus)="open()"
+      (input)="onSearchInput($any($event.target).value)"
+    />
+    @if (value) {
+      <button type="button" class="ss-clear" (click)="clear($event)" title="Limpar">×</button>
+    }
+  </div>
+
+  @if (isOpen()) {
+    <div class="ss-dropdown">
+      @for (option of filteredOptions; track option.value) {
+        <button
+          type="button"
+          class="ss-option"
+          [class.selected]="isSelected(option)"
+          (click)="select(option)"
+        >
+          {{ option.label }}
+        </button>
+      }
+      @if (filteredOptions.length === 0) {
+        <div class="ss-empty">Nenhum resultado encontrado</div>
+      }
+    </div>
+  }
+</div>

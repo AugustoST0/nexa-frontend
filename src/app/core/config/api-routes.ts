@@ -59,3 +59,20 @@ export const RELATORIO_ENDPOINTS = {
     DOWNLOAD_CSV: (id: number) => `${API_ROUTES.RELATORIOS}/${id}/csv`,
     DOWNLOAD_PDF: (id: number) => `${API_ROUTES.RELATORIOS}/${id}/pdf`,
 } as const;
+
+export const SUPERVISAO_ENDPOINTS = {
+    GET_POR_COLABORADOR: (id: number) => `${BASE_URL}/supervisoes/colaborador/${id}`,
+    GET_POR_SUPERVISOR: (id: number) => `${BASE_URL}/supervisoes/supervisor/${id}`,
+    GET_HISTORICO_POR_COLABORADOR: (id: number) => `${BASE_URL}/supervisoes/historico/supervisionado/${id}`,
+    CREATE: `${BASE_URL}/supervisoes`,
+    ENCERRAR: (id: number) => `${BASE_URL}/supervisoes/${id}/encerrar`,
+    TROCAR: `${BASE_URL}/supervisoes/trocar-supervisor`,
+    MIGRAR_TODOS: `${BASE_URL}/supervisoes/migrar-todos`,
+} as const;
+
+export const TIPO_SUPERVISOR_ENDPOINTS = {
+    GET_ALL: `${BASE_URL}/tipos-supervisor`,
+    CREATE: `${BASE_URL}/tipos-supervisor`,
+    UPDATE: (id: number) => `${BASE_URL}/tipos-supervisor/${id}`,
+    DELETE: (id: number) => `${BASE_URL}/tipos-supervisor/${id}`,
+} as const;

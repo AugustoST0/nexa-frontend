@@ -4,6 +4,57 @@
   gap: var(--spacing-4);
 }
 
+/* Filtros adicionais (opcional) */
+.extra-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid #E2E8F0;
+}
+
+.extra-filters-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.extra-filters .field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  flex: 1;
+}
+
+.extra-filters .field label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: #0F172A;
+}
+
+.extra-filters .field input {
+  padding: 9px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  color: #0F172A;
+  background-color: #fff;
+}
+
+.extra-filters .field input:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.filters-row {
+  display: flex;
+  gap: var(--spacing-4);
+}
+
 /* Pesquisas salvas */
 .pesquisas-salvas {
   display: flex;

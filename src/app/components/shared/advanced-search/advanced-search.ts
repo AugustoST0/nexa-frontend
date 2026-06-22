@@ -4,28 +4,33 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Save } from 'lucide-angular';
 import { TagService } from '../../../core/services/crud/tag-service';
 import { GrupoService } from '../../../core/services/crud/grupo-service';
+import { ColaboradorService } from '../../../core/services/crud/colaborador-service';
 import { AlertService } from '../../../core/services/alert-service';
 import { ModalService } from '../../../core/services/modal-service';
 import { Tag } from '../../../core/model/Tag.model';
 import { Grupo } from '../../../core/model/Grupo.model';
+import { ColaboradorWithCalcs } from '../../../core/model/ColaboradorWithCalcs.model';
+import { AdvancedSearchDTO } from '../../../core/dto/AdvancedSearchDTO';
+import { SearchableSelectComponent } from '../searchable-select/searchable-select';
 
 const OPERADORES = ['E', 'OU', 'NÃO POSSUI'];
 
 @Component({
   selector: 'app-advanced-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent],
   templateUrl: './advanced-search.html',
   styleUrls: ['./advanced-search.css'],
 })
 export class AdvancedSearchComponent implements OnInit {
   @Input() tokens: string[] = [];
   @Output() tokensChange = new EventEmitter<string[]>();
-  @Output() search = new EventEmitter<string[]>();
+  @Output() search = new EventEmitter<AdvancedSearchDTO>();
   @Output() clear = new EventEmitter<void>();
 
   private readonly tagService = inject(TagService);
   private readonly grupoService = inject(GrupoService);
+  private readonly colaboradorService = inject(ColaboradorService);
   private readonly alertService = inject(AlertService);
   private readonly modalService = inject(ModalService);
 
@@ -39,6 +44,24 @@ export class AdvancedSearchComponent implements OnInit {
   tagSelectValue = signal('');
   pesquisasSalvas = signal<Grupo[]>([]);
 
+  // Filtros adicionais (opcionais)
+  colaboradores = signal<ColaboradorWithCalcs[]>([]);
+  buscaSupervisorId = signal('');
+  buscaDataInicio = signal('');
+  buscaDataFim = signal('');
+
+  supervisorOptions = computed(() =>
+    this.colaboradores().map((c) => ({ value: c.id!, label: c.nome }))
+  );
+
+  hasExtraFiltro = computed(() =>
+    !!this.buscaSupervisorId() || !!this.buscaDataInicio() || !!this.buscaDataFim()
+  );
+
+  tagSelectOptions = computed(() =>
+    this.allTags().map((t) => ({ value: t.nome, label: t.nome }))
+  );
+
   canAddTag = computed(() => {
     const tokens = this.tokensAvancados();
     return tokens.length === 0 || this.isOperador(tokens[tokens.length - 1]);
@@ -51,18 +74,31 @@ export class AdvancedSearchComponent implements OnInit {
 
   canSearch = computed(() => {
     const tokens = this.tokensAvancados();
-    return tokens.length >= 1 && !this.isOperador(tokens[tokens.length - 1]);
+    const tokensValidos = tokens.length >= 1 && !this.isOperador(tokens[tokens.length - 1]);
+    return tokensValidos || (tokens.length === 0 && this.hasExtraFiltro());
   });
 
   canSave = computed(() => {
     const tokens = this.tokensAvancados();
-    return tokens.length >= 3 && !this.isOperador(tokens[tokens.length - 1]);
+    const tokensValidos = tokens.length >= 3 && !this.isOperador(tokens[tokens.length - 1]);
+    return tokensValidos || (tokens.length === 0 && this.hasExtraFiltro());
   });
 
   ngOnInit(): void {
     this.tokensAvancados.set(this.tokens ?? []);
     this.loadTags();
     this.loadPesquisasSalvas();
+    this.loadColaboradores();
+  }
+
+  loadColaboradores(): void {
+    this.colaboradorService.getAll().subscribe({
+      next: (colaboradores) => this.colaboradores.set(colaboradores),
+      error: (error) => {
+        console.error('Erro ao carregar colaboradores:', error);
+        this.colaboradores.set([]);
+      },
+    });
   }
 
   loadPesquisasSalvas(): void {
@@ -117,8 +153,28 @@ export class AdvancedSearchComponent implements OnInit {
 
   salvarPesquisa(): void {
     if (!this.canSave()) return;
-    const tokens = this.tokensAvancados();
-    this.grupoService.create({ nome: tokens.join(' '), tokens }).subscribe({
+
+    const partes: string[] = [];
+    if (this.tokensAvancados().length > 0) partes.push(this.tokensAvancados().join(' '));
+    if (this.buscaSupervisorId()) {
+      const sup = this.colaboradores().find((c) => c.id === Number(this.buscaSupervisorId()));
+      if (sup) partes.push(`Supervisor: ${sup.nome}`);
+    }
+    if (this.buscaDataInicio()) partes.push(`Admitido após: ${this.buscaDataInicio()}`);
+    if (this.buscaDataFim()) partes.push(`Admitido até: ${this.buscaDataFim()}`);
+    const nome = partes.join(' | ') || 'Pesquisa personalizada';
+
+    const payload = {
+      nome,
+      tokens: this.tokensAvancados(),
+      supervisorId: this.buscaSupervisorId() ? Number(this.buscaSupervisorId()) : undefined,
+      dataAdmissaoInicio: this.buscaDataInicio() || undefined,
+      dataAdmissaoFim: this.buscaDataFim() || undefined,
+    };
+    // DEBUG temporário — remover após validar
+    console.log('[DEBUG salvarPesquisa] payload:', payload);
+
+    this.grupoService.create(payload).subscribe({
       next: () => {
         this.alertService.success('Pesquisa salva com sucesso');
         this.loadPesquisasSalvas();
@@ -176,7 +232,12 @@ export class AdvancedSearchComponent implements OnInit {
 
   onSearch(): void {
     if (!this.canSearch()) return;
-    this.search.emit(this.tokensAvancados());
+    this.search.emit({
+      tokens: this.tokensAvancados(),
+      supervisorId: this.buscaSupervisorId() ? Number(this.buscaSupervisorId()) : undefined,
+      dataAdmissaoInicio: this.buscaDataInicio() || undefined,
+      dataAdmissaoFim: this.buscaDataFim() || undefined,
+    });
   }
 
   onClear(): void {
@@ -184,6 +245,9 @@ export class AdvancedSearchComponent implements OnInit {
     this.showTagSelect.set(false);
     this.showOperadorButtons.set(false);
     this.tagSelectValue.set('');
+    this.buscaSupervisorId.set('');
+    this.buscaDataInicio.set('');
+    this.buscaDataFim.set('');
     this.tokensChange.emit([]);
     this.clear.emit();
   }

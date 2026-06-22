@@ -1,14 +1,20 @@
 <div class="colaborador-list-container">
   <div class="header">
     <h1>Colaboradores</h1>
-    <app-button variant="primary" size="md" (clicked)="onNew()">
-      + Novo Colaborador
-    </app-button>
+    <div class="header-actions">
+      <button type="button" class="btn-massa" (click)="openMassaModal()">
+        <lucide-icon [img]="Users" [size]="18"></lucide-icon>
+        <span>Atribuir Supervisão em Massa</span>
+      </button>
+      <app-button variant="primary" size="md" (clicked)="onNew()">
+        + Novo Colaborador
+      </app-button>
+    </div>
   </div>
 
   <!-- Filter Component -->
   <div class="filter-section">
-    <app-colaborador-filter></app-colaborador-filter>
+    <app-colaborador-filter (gerenciarSupervisao)="openSupervisaoModal($event)"></app-colaborador-filter>
   </div>
 
   @if (loading()) {
@@ -32,7 +38,6 @@
               <th>Matrícula</th>
               <th>Cargo</th>
               <th>Departamento</th>
-              <th>Supervisor</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -43,13 +48,6 @@
                 <td>{{ colaborador.matricula }}</td>
                 <td>{{ colaborador.cargo }}</td>
                 <td>{{ colaborador.departamento }}</td>
-                <td>
-                  @if (colaborador.supervisor) {
-                    {{ colaborador.supervisor.nome }}
-                  } @else {
-                    <span class="no-supervisor">Sem supervisor</span>
-                  }
-                </td>
                 <td class="actions">
                   <app-button
                     variant="ghost"
@@ -75,6 +73,14 @@
                   >
                     <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
                   </app-button>
+                  <app-button
+                    variant="ghost"
+                    size="sm"
+                    (clicked)="openSupervisaoModal(colaborador)"
+                    title="Gerenciar Supervisão"
+                  >
+                    <lucide-icon [img]="Network" [size]="16"></lucide-icon>
+                  </app-button>
                 </td>
               </tr>
             }
@@ -84,3 +90,221 @@
     </app-card>
   }
 </div>
+
+<!-- ===== Modal: Gerenciar Supervisão ===== -->
+@if (showSupervisaoModal() && supervisaoColab(); as colab) {
+  <div class="modal-overlay" (click)="closeSupervisaoModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Gerenciar Supervisão — {{ colab.nome }}</h2>
+        <button type="button" class="icon-btn" (click)="closeSupervisaoModal()" title="Fechar">
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="tabs">
+        <button type="button" class="tab" [class.active]="supervisaoTab() === 'ativos'" (click)="supervisaoTab.set('ativos')">
+          Supervisores Ativos
+        </button>
+        <button type="button" class="tab" [class.active]="supervisaoTab() === 'atribuir'" (click)="supervisaoTab.set('atribuir')">
+          Atribuir Supervisor
+        </button>
+        <button type="button" class="tab" [class.active]="supervisaoTab() === 'migrar'" (click)="supervisaoTab.set('migrar')">
+          Migrar Subordinados ({{ subordinadosAtivos().length }})
+        </button>
+        <button type="button" class="tab" [class.active]="supervisaoTab() === 'historico'" (click)="supervisaoTab.set('historico')">
+          Histórico
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Aba: Supervisores Ativos -->
+        @if (supervisaoTab() === 'ativos') {
+          @if (supervisoesAtivas().length === 0) {
+            <p class="empty-text">Nenhum supervisor ativo</p>
+          } @else {
+            <div class="sup-list">
+              @for (s of supervisoesAtivas(); track s.id) {
+                <div class="sup-item">
+                  <div class="sup-info">
+                    <span class="sup-name">{{ s.supervisor.nome }} <span class="sup-tipo">({{ s.tipoSupervisor.nome }})</span></span>
+                    <span class="sup-date">Desde {{ s.dataInicio | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <button type="button" class="encerrar-btn" (click)="encerrarSupervisao(s)" title="Encerrar">
+                    <lucide-icon [img]="X" [size]="14"></lucide-icon>
+                    <span>Encerrar</span>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <!-- Aba: Atribuir Supervisor -->
+        @if (supervisaoTab() === 'atribuir') {
+          <div class="sup-form">
+            <div class="field">
+              <label>Supervisor</label>
+              <app-searchable-select
+                [options]="supervisorSelectOptions()"
+                placeholder="Selecione..."
+                [value]="formSupervisorId()"
+                (valueChange)="formSupervisorId.set($event)"
+              ></app-searchable-select>
+            </div>
+            <div class="field">
+              <label>Tipo</label>
+              <select [ngModel]="formTipoId()" (ngModelChange)="formTipoId.set($event)">
+                <option value="">Selecione...</option>
+                @for (t of tiposOptions(); track t.id) {
+                  <option [value]="t.id">{{ t.nome }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Data Início</label>
+              <input type="date" [ngModel]="formDataInicio()" (ngModelChange)="formDataInicio.set($event)" />
+            </div>
+            <app-button variant="primary" [disabled]="!canAtribuir()" (clicked)="atribuirSupervisor()">Atribuir</app-button>
+          </div>
+        }
+
+        <!-- Aba: Migrar Subordinados -->
+        @if (supervisaoTab() === 'migrar') {
+          @if (subordinadosAtivos().length === 0) {
+            <p class="empty-text">Este colaborador não possui subordinados ativos para migrar</p>
+          } @else {
+            <div class="sup-list">
+              @for (s of subordinadosAtivos(); track s.id) {
+                <div class="sup-item">
+                  <span class="sup-name">{{ s.supervisionado.nome }} <span class="sup-tipo">({{ s.tipoSupervisor.nome }})</span></span>
+                  <button type="button" class="encerrar-btn" (click)="desassociarSubordinado(s)" title="Desassociar">
+                    <lucide-icon [img]="UserMinus" [size]="14"></lucide-icon>
+                    <span>Desassociar</span>
+                  </button>
+                </div>
+              }
+            </div>
+
+            <div class="sup-form">
+              <div class="field">
+                <label>Novo Supervisor</label>
+                <app-searchable-select
+                  [options]="supervisorSelectOptions()"
+                  placeholder="Selecione..."
+                  [value]="formMigrarSupervisorId()"
+                  (valueChange)="formMigrarSupervisorId.set($event)"
+                ></app-searchable-select>
+              </div>
+              <div class="field">
+                <label>Filtrar por Tipo</label>
+                <select [ngModel]="formMigrarTipoId()" (ngModelChange)="formMigrarTipoId.set($event)">
+                  <option value="">Todos os tipos</option>
+                  @for (t of tiposOptions(); track t.id) {
+                    <option [value]="t.id">{{ t.nome }}</option>
+                  }
+                </select>
+              </div>
+              <app-button variant="primary" [disabled]="!canMigrar()" (clicked)="migrarSubordinados()">Migrar Todos</app-button>
+            </div>
+          }
+        }
+
+        <!-- Aba: Histórico -->
+        @if (supervisaoTab() === 'historico') {
+          @if (supervisoesHistorico().length === 0) {
+            <p class="empty-text">Nenhum histórico de supervisão</p>
+          } @else {
+            <div class="sup-list">
+              @for (s of supervisoesHistorico(); track s.id) {
+                <div class="sup-item sup-item-col">
+                  <span class="sup-name">{{ s.supervisor.nome }} <span class="sup-tipo">({{ s.tipoSupervisor.nome }})</span></span>
+                  <span class="sup-date">
+                    {{ s.dataInicio | date:'dd/MM/yyyy' }} → {{ s.dataFim ? (s.dataFim | date:'dd/MM/yyyy') : 'atual' }}
+                  </span>
+                  @if (s.observacoes) {
+                    <span class="sup-obs">{{ s.observacoes }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Modal: Atribuir em Massa ===== -->
+@if (showMassaModal()) {
+  <div class="modal-overlay" (click)="closeMassaModal()">
+    <div class="modal-card modal-card-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Atribuir Supervisor em Massa</h2>
+        <button type="button" class="icon-btn" (click)="closeMassaModal()" title="Fechar">
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="sup-form">
+          <div class="field">
+            <label>Supervisor</label>
+            <app-searchable-select
+              [options]="supervisorSelectOptions()"
+              placeholder="Selecione..."
+              [value]="massaSupervisorId()"
+              (valueChange)="massaSupervisorId.set($event)"
+            ></app-searchable-select>
+          </div>
+          <div class="field">
+            <label>Tipo</label>
+            <select [ngModel]="massaTipoId()" (ngModelChange)="massaTipoId.set($event)">
+              <option value="">Selecione...</option>
+              @for (t of tiposOptions(); track t.id) {
+                <option [value]="t.id">{{ t.nome }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Data Início</label>
+            <input type="date" [ngModel]="massaDataInicio()" (ngModelChange)="massaDataInicio.set($event)" />
+          </div>
+        </div>
+
+        <div class="massa-selection">
+          <div class="massa-select-header">
+            <label>Colaboradores</label>
+            <div class="massa-select-actions">
+              <button type="button" class="link-btn" (click)="selecionarTodosMassa()">Selecionar Todos</button>
+              <button type="button" class="link-btn" (click)="limparSelecaoMassa()">Limpar</button>
+            </div>
+          </div>
+          <div class="massa-list">
+            @for (c of colaboradores(); track c.id) {
+              <label class="massa-item">
+                <input
+                  type="checkbox"
+                  [checked]="massaSelecionados().has(c.id!)"
+                  (change)="toggleMassa(c.id!)"
+                />
+                <span class="massa-item-info">
+                  <span class="massa-item-nome">{{ c.nome }}</span>
+                  <span class="massa-item-cargo">{{ c.cargo }}</span>
+                </span>
+              </label>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <span class="massa-count">{{ massaSelecionados().size }} colaborador(es) selecionado(s)</span>
+        <div class="footer-actions">
+          <app-button variant="outline" (clicked)="closeMassaModal()">Cancelar</app-button>
+          <app-button variant="primary" [disabled]="!canAtribuirMassa()" (clicked)="atribuirEmMassa()">Atribuir</app-button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

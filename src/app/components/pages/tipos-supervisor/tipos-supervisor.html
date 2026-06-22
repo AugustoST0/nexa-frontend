@@ -1,0 +1,121 @@
+<div class="tipos-container">
+  <div class="header">
+    <div class="header-text">
+      <h1>Tipos de Supervisão</h1>
+      <p class="subtitle">Gerencie os tipos de supervisão e seus níveis hierárquicos</p>
+    </div>
+    <app-button variant="primary" size="md" (clicked)="openNew()">
+      <lucide-icon [img]="Plus" [size]="16"></lucide-icon>
+      <span>Novo Tipo</span>
+    </app-button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Carregando...</div>
+  } @else if (tiposOrdenados().length === 0) {
+    <app-card variant="bordered" class="empty-state-card">
+      <div class="empty-state">
+        <p>Nenhum tipo de supervisão cadastrado</p>
+      </div>
+    </app-card>
+  } @else {
+    <app-card variant="elevated" class="table-card">
+      <div class="table-container">
+        <table class="tipos-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Nível</th>
+              <th>Descrição</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tipo of tiposOrdenados(); track tipo.id) {
+              <tr>
+                <td class="tipo-nome">{{ tipo.nome }}</td>
+                <td>{{ tipo.nivel }}</td>
+                <td>
+                  @if (tipo.descricao) {
+                    {{ tipo.descricao }}
+                  } @else {
+                    <span class="desc-empty">—</span>
+                  }
+                </td>
+                <td class="actions">
+                  <app-button variant="ghost" size="sm" (clicked)="openEdit(tipo)" title="Editar">
+                    <lucide-icon [img]="Edit" [size]="16"></lucide-icon>
+                  </app-button>
+                  <app-button variant="ghost" size="sm" (clicked)="confirmarExclusao(tipo)" title="Excluir">
+                    <lucide-icon [img]="Trash2" [size]="16"></lucide-icon>
+                  </app-button>
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" class="table-footer">
+                {{ tiposOrdenados().length }} tipo(s)
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </app-card>
+  }
+</div>
+
+<!-- ===== Modal: Criar/Editar Tipo ===== -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingId() ? 'Editar Tipo' : 'Novo Tipo' }}</h2>
+        <button type="button" class="icon-btn" (click)="closeModal()" title="Fechar">
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="field">
+          <label>Nome</label>
+          <input
+            type="text"
+            [ngModel]="formNome()"
+            (ngModelChange)="formNome.set($event)"
+            placeholder="Ex: Gerente, Mentor, etc."
+            maxlength="100"
+          />
+        </div>
+
+        <div class="field">
+          <label>Nível</label>
+          <input
+            type="number"
+            min="1"
+            [ngModel]="formNivel()"
+            (ngModelChange)="formNivel.set($event)"
+            placeholder="Menor número = mais próximo do colaborador"
+          />
+        </div>
+
+        <div class="field">
+          <label>Descrição</label>
+          <textarea
+            rows="3"
+            [ngModel]="formDescricao()"
+            (ngModelChange)="formDescricao.set($event)"
+            placeholder="Descrição opcional"
+            maxlength="300"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="ghost" (clicked)="closeModal()">Cancelar</app-button>
+        <app-button variant="primary" [disabled]="!canSave()" (clicked)="salvar()">Salvar</app-button>
+      </div>
+    </div>
+  </div>
+}

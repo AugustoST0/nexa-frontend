@@ -133,6 +133,21 @@
   gap: var(--spacing-3);
 }
 
+/* Badge do nome encolhe e trunca com reticências em vez de empurrar as ações */
+.tag-header app-badge {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+}
+
+.tag-header ::ng-deep .badge {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .tag-actions {
   display: flex;
   gap: var(--spacing-1);
@@ -324,6 +339,44 @@
   outline: none;
   border-color: #4F46E5;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.field input {
+  padding: 9px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  color: #0F172A;
+  background-color: #fff;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Filtros adicionais (Nova Pesquisa) */
+.extra-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid #F1F5F9;
+}
+
+.extra-filters-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filters-row {
+  display: flex;
+  gap: var(--spacing-4);
 }
 
 .preview {

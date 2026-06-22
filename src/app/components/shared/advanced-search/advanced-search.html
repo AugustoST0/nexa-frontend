@@ -61,16 +61,12 @@
   </div>
 
   @if (showTagSelect()) {
-    <select
-      class="inline-select"
-      [ngModel]="tagSelectValue()"
-      (ngModelChange)="addTagToken($event)"
-    >
-      <option value="">Selecione uma tag...</option>
-      @for (tag of allTags(); track tag.id) {
-        <option [value]="tag.nome">{{ tag.nome }}</option>
-      }
-    </select>
+    <app-searchable-select
+      [options]="tagSelectOptions()"
+      placeholder="Selecione uma tag..."
+      [value]="tagSelectValue()"
+      (valueChange)="addTagToken($event)"
+    ></app-searchable-select>
   }
 
   @if (showOperadorButtons()) {
@@ -80,6 +76,30 @@
       }
     </div>
   }
+
+  <!-- Filtros adicionais (opcional) -->
+  <div class="extra-filters">
+    <span class="extra-filters-label">Filtros Adicionais (opcional)</span>
+    <div class="field">
+      <label>Supervisor</label>
+      <app-searchable-select
+        [options]="supervisorOptions()"
+        placeholder="Qualquer supervisor"
+        [value]="buscaSupervisorId()"
+        (valueChange)="buscaSupervisorId.set($event)"
+      ></app-searchable-select>
+    </div>
+    <div class="filters-row">
+      <div class="field">
+        <label>Admitido após</label>
+        <input type="date" [ngModel]="buscaDataInicio()" (ngModelChange)="buscaDataInicio.set($event)" />
+      </div>
+      <div class="field">
+        <label>Admitido até</label>
+        <input type="date" [ngModel]="buscaDataFim()" (ngModelChange)="buscaDataFim.set($event)" />
+      </div>
+    </div>
+  </div>
 
   <!-- Ações -->
   <div class="search-actions">

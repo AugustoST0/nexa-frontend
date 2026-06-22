@@ -1,14 +1,16 @@
-import { Component, Input, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { ColaboradorFilterResponseDTO } from '../../../core/dto/ColaboradorFilterResponseDTO';
 import { ColaboradorService } from '../../../core/services/crud/colaborador-service';
+import { SupervisaoService } from '../../../core/services/crud/supervisao-service';
 import { AlertService } from '../../../core/services/alert-service';
 import { ModalService } from '../../../core/services/modal-service';
-import { DetailModalConfig } from '../../../core/model/DetailModalConfig.model';
+import { DetailModalConfig, DetailField } from '../../../core/model/DetailModalConfig.model';
 import { ConfirmModalConfig } from '../../../core/model/ConfirmModalConfig.model';
 import { ButtonComponent } from '../../ui/button/button';
-import { LucideAngularModule, Eye, Edit, Trash2 } from 'lucide-angular';
+import { LucideAngularModule, Eye, Edit, Trash2, Network } from 'lucide-angular';
 
 @Component({
   selector: 'app-results-table',
@@ -21,9 +23,11 @@ export class ResultsTableComponent {
   @Input() resultados: ColaboradorFilterResponseDTO[] = [];
   @Input() loading: boolean = false;
   @Input() mensagem: string = '';
+  @Output() gerenciarSupervisao = new EventEmitter<ColaboradorFilterResponseDTO>();
 
   private readonly router = inject(Router);
   private readonly colaboradorService = inject(ColaboradorService);
+  private readonly supervisaoService = inject(SupervisaoService);
   private readonly alertService = inject(AlertService);
   private readonly modalService = inject(ModalService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -31,6 +35,11 @@ export class ResultsTableComponent {
   readonly Eye = Eye;
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
+  readonly Network = Network;
+
+  onGerenciarSupervisao(resultado: ColaboradorFilterResponseDTO) {
+    this.gerenciarSupervisao.emit(resultado);
+  }
 
   onEdit(id: number) {
     this.router.navigate(['/colaboradores/editar', id]);
@@ -64,8 +73,26 @@ export class ResultsTableComponent {
   }
 
   onView(id: number) {
-    this.colaboradorService.getById(id).subscribe({
-      next: (colaborador) => {
+    forkJoin({
+      colaborador: this.colaboradorService.getById(id),
+      supervisores: this.supervisaoService.getSupervisoesPorColaborador(id),
+      subordinados: this.supervisaoService.getSupervisoesPorSupervisor(id),
+    }).subscribe({
+      next: ({ colaborador, supervisores, subordinados }) => {
+        const nomesSupervisores = supervisores
+          .filter((s) => !s.dataFim)
+          .map((s) => `${s.supervisor.nome} (${s.tipoSupervisor.nome})`);
+        const nomesSubordinados = subordinados
+          .filter((s) => !s.dataFim)
+          .map((s) => s.supervisionado.nome);
+
+        const supervisoresField: DetailField = nomesSupervisores.length
+          ? { label: 'Supervisores', value: nomesSupervisores, type: 'list' }
+          : { label: 'Supervisores', value: 'Nenhum' };
+        const subordinadosField: DetailField = nomesSubordinados.length
+          ? { label: 'Subordinados', value: nomesSubordinados, type: 'list' }
+          : { label: 'Subordinados', value: 'Nenhum' };
+
         const config: DetailModalConfig = {
           title: colaborador.nome,
           sections: [
@@ -90,17 +117,7 @@ export class ResultsTableComponent {
             },
             {
               title: 'Hierarquia',
-              fields: [
-                {
-                  label: 'Supervisor',
-                  value: colaborador.supervisor?.nome || 'Nenhum'
-                },
-                {
-                  label: 'Subordinados',
-                  value: colaborador.subordinados || [],
-                  type: 'list'
-                },
-              ],
+              fields: [supervisoresField, subordinadosField],
             },
             {
               title: 'Tags',

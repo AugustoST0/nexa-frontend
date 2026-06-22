@@ -7,7 +7,6 @@ export interface ColaboradorUpdateDTO {
   departamento?: string;
   dataNascimento?: string;
   dataAdmissao?: string;
-  supervisorId?: number | null;
   tagIds?: number[];
   ativo?: boolean;
 }

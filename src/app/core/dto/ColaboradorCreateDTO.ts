@@ -7,6 +7,5 @@ export interface ColaboradorCreateDTO {
   departamento: string;
   dataNascimento: string;
   dataAdmissao: string;
-  supervisorId?: number | null;
   tagIds?: number[];
 }

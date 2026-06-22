@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { LucideAngularModule, Home, Folder, Users, UserPlus, BarChart3, LogOut } from 'lucide-angular';
+import { LucideAngularModule, Home, Folder, Users, UserPlus, BarChart3, LogOut, Layers } from 'lucide-angular';
 import { AuthService } from '../../../core/services/auth-service';
 
 @Component({
@@ -19,6 +19,7 @@ export class Layout {
   readonly UserPlus = UserPlus;
   readonly BarChart3 = BarChart3;
   readonly LogOut = LogOut;
+  readonly Layers = Layers;
 
   isAdmin(): boolean {
     return this.authService.isAdmin();

@@ -142,36 +142,16 @@
             </app-form-field>
           </div>
 
-          <div class="form-row">
-            <app-form-field
-              label="Supervisor"
-              htmlFor="supervisorId"
-              [error]="getErrorMessage('supervisorId')"
-            >
-              <select
-                id="supervisorId"
-                formControlName="supervisorId"
-                class="supervisor-select"
-                [class.error]="hasError('supervisorId')"
-              >
-                <option value="">Selecione um supervisor (opcional)</option>
-                @for (supervisor of availableSupervisores(); track supervisor.id) {
-                  <option [value]="supervisor.id">
-                    {{ supervisor.nome }} - {{ supervisor.cargo }}
-                  </option>
-                }
-              </select>
-            </app-form-field>
-
-            @if (isEditMode()) {
+          @if (isEditMode()) {
+            <div class="form-row">
               <div class="checkbox-container">
                 <label class="checkbox-label">
                   <input type="checkbox" formControlName="ativo" />
                   <span>Colaborador Ativo</span>
                 </label>
               </div>
-            }
-          </div>
+            </div>
+          }
         </div>
 
         <div class="form-section">

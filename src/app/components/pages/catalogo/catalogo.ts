@@ -12,16 +12,18 @@ import { ModalService } from '../../../core/services/modal-service';
 import { Grupo } from '../../../core/model/Grupo.model';
 import { Tag } from '../../../core/model/Tag.model';
 import { ColaboradorFilterResponseDTO } from '../../../core/dto/ColaboradorFilterResponseDTO';
+import { ColaboradorWithCalcs } from '../../../core/model/ColaboradorWithCalcs.model';
 import { FormModalConfig } from '../../../core/model/FormModalConfig.model';
 import { ButtonComponent } from '../../ui/button/button';
 import { CardComponent } from '../../ui/card/card';
 import { BadgeComponent } from '../../ui/badge/badge';
+import { SearchableSelectComponent } from '../../shared/searchable-select/searchable-select';
 
 const OPERADORES = ['E', 'OU', 'NÃO POSSUI'];
 
 @Component({
   selector: 'app-catalogo',
-  imports: [CommonModule, FormsModule, LucideAngularModule, ButtonComponent, CardComponent, BadgeComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ButtonComponent, CardComponent, BadgeComponent, SearchableSelectComponent],
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,12 +60,30 @@ export class Catalogo implements OnInit {
     return tags.filter((t) => t.nome.toLowerCase().includes(term));
   });
 
+  tagSelectOptions = computed(() =>
+    this.allTags().map((t) => ({ value: t.nome, label: t.nome }))
+  );
+
   // Modal "Nova Pesquisa"
   showNewSearch = signal(false);
   newTokens = signal<string[]>([]);
   showTagSelect = signal(false);
   showOperadorButtons = signal(false);
   tagSelectValue = signal('');
+
+  // Filtros adicionais (opcionais)
+  colaboradores = signal<ColaboradorWithCalcs[]>([]);
+  formSupervisorId = signal('');
+  formDataInicio = signal('');
+  formDataFim = signal('');
+
+  supervisorOptions = computed(() =>
+    this.colaboradores().map((c) => ({ value: c.id!, label: c.nome }))
+  );
+
+  hasExtraFiltro = computed(() =>
+    !!this.formSupervisorId() || !!this.formDataInicio() || !!this.formDataFim()
+  );
 
   canAddTag = computed(() => {
     const tokens = this.newTokens();
@@ -77,7 +97,8 @@ export class Catalogo implements OnInit {
 
   canSave = computed(() => {
     const tokens = this.newTokens();
-    return tokens.length >= 3 && !this.isOperador(tokens[tokens.length - 1]);
+    const tokensValidos = tokens.length >= 3 && !this.isOperador(tokens[tokens.length - 1]);
+    return tokensValidos || (tokens.length === 0 && this.hasExtraFiltro());
   });
 
   previewNome = computed(() => this.newTokens().join(' '));
@@ -94,6 +115,14 @@ export class Catalogo implements OnInit {
     }
     this.loadAllTags();
     this.loadPesquisas();
+    this.loadColaboradores();
+  }
+
+  loadColaboradores() {
+    this.colaboradorService.getAll().subscribe({
+      next: (colaboradores) => this.colaboradores.set(colaboradores),
+      error: (err) => console.error('Erro ao carregar colaboradores', err),
+    });
   }
 
   isOperador(token: string): boolean {
@@ -215,6 +244,9 @@ export class Catalogo implements OnInit {
     this.showTagSelect.set(false);
     this.showOperadorButtons.set(false);
     this.tagSelectValue.set('');
+    this.formSupervisorId.set('');
+    this.formDataInicio.set('');
+    this.formDataFim.set('');
     this.showNewSearch.set(true);
   }
 
@@ -251,14 +283,20 @@ export class Catalogo implements OnInit {
 
   salvarPesquisa() {
     if (!this.canSave()) {
-      this.alertService.warning('A pesquisa deve ter ao menos uma tag, um operador e outra tag');
+      this.alertService.warning('Defina uma busca por tags válida ou ao menos um filtro adicional');
       return;
     }
 
     const tokens = this.newTokens();
-    const nome = tokens.join(' ');
+    const nome = tokens.join(' ') || 'Pesquisa personalizada';
 
-    this.grupoService.create({ nome, tokens }).subscribe({
+    this.grupoService.create({
+      nome,
+      tokens,
+      supervisorId: this.formSupervisorId() ? Number(this.formSupervisorId()) : undefined,
+      dataAdmissaoInicio: this.formDataInicio() || undefined,
+      dataAdmissaoFim: this.formDataFim() || undefined,
+    }).subscribe({
       next: () => {
         this.alertService.success('Pesquisa salva com sucesso');
         this.closeNewSearch();
@@ -286,10 +324,15 @@ export class Catalogo implements OnInit {
 
   buscarColaboradores() {
     const grupo = this.selectedPesquisa();
-    if (!grupo?.tokens) return;
+    if (!grupo) return;
 
     this.searching.set(true);
-    this.colaboradorService.searchAdvanced({ tokens: grupo.tokens }).subscribe({
+    this.colaboradorService.searchAdvanced({
+      tokens: grupo.tokens,
+      supervisorId: grupo.supervisorId,
+      dataAdmissaoInicio: grupo.dataAdmissaoInicio,
+      dataAdmissaoFim: grupo.dataAdmissaoFim,
+    }).subscribe({
       next: (resultados) => {
         this.searchResults.set(resultados);
         this.searching.set(false);
