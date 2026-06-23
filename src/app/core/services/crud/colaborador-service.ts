@@ -137,7 +137,7 @@ export class ColaboradorService {
     // 4. Preparar body da requisição (inclui filtros opcionais quando definidos)
     const requestBody: AdvancedSearchDTO = {
       tokens: sanitizedTokens,
-      supervisorId: searchDTO.supervisorId,
+      supervisorIds: searchDTO.supervisorIds,
       dataAdmissaoInicio: searchDTO.dataAdmissaoInicio,
       dataAdmissaoFim: searchDTO.dataAdmissaoFim,
     };

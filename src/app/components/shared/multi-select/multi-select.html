@@ -1,0 +1,47 @@
+<div class="ms-wrapper">
+  @if (selected.length > 0) {
+    <div class="ms-pills">
+      @for (label of selectedLabels; track $index) {
+        <span class="ms-pill">
+          {{ label }}
+          <button type="button" class="ms-pill-remove" (click)="removePill(selected[$index], $event)" title="Remover">×</button>
+        </span>
+      }
+    </div>
+  }
+
+  <div class="ms-input-group">
+    <input
+      type="text"
+      class="ms-input"
+      [value]="search()"
+      [placeholder]="selected.length === 0 ? placeholder : 'Buscar mais...'"
+      (focus)="open()"
+      (input)="onSearchInput($any($event.target).value)"
+    />
+    @if (selected.length > 0) {
+      <button type="button" class="ms-clear" (click)="clearAll($event)" title="Limpar tudo">×</button>
+    }
+  </div>
+
+  @if (isOpen()) {
+    <div class="ms-dropdown">
+      @for (option of filteredOptions; track option.value) {
+        <button
+          type="button"
+          class="ms-option"
+          [class.selected]="isSelected(option.value)"
+          (click)="toggle(option.value)"
+        >
+          <span class="ms-checkbox" [class.checked]="isSelected(option.value)">
+            @if (isSelected(option.value)) { ✓ }
+          </span>
+          {{ option.label }}
+        </button>
+      }
+      @if (filteredOptions.length === 0) {
+        <div class="ms-empty">Nenhum resultado encontrado</div>
+      }
+    </div>
+  }
+</div>

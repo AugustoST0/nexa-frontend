@@ -101,6 +101,11 @@
                     }
                   }
                 </div>
+                @if (ultimaExecucao(pesquisa.id!); as data) {
+                  <p class="pesquisa-data">Último relatório: {{ data }}</p>
+                } @else {
+                  <p class="pesquisa-data">Nenhum relatório gerado</p>
+                }
               </div>
               <div class="pesquisa-actions">
                 <button type="button" class="icon-btn" (click)="openSavedSearch(pesquisa)" title="Ver pesquisa">
@@ -195,12 +200,12 @@
           <span class="extra-filters-label">Filtros Adicionais (opcional)</span>
           <div class="field">
             <label>Supervisor</label>
-            <app-searchable-select
+            <app-multi-select
               [options]="supervisorOptions()"
               placeholder="Qualquer supervisor"
-              [value]="formSupervisorId()"
-              (valueChange)="formSupervisorId.set($event)"
-            ></app-searchable-select>
+              [selected]="formSupervisorIds()"
+              (selectedChange)="formSupervisorIds.set($event)"
+            ></app-multi-select>
           </div>
           <div class="filters-row">
             <div class="field">
@@ -235,6 +240,7 @@
       </div>
 
       <div class="modal-body">
+        <span class="consulta-label">Consulta</span>
         <div class="pills">
           @for (token of pesquisa.tokens; track $index) {
             @if (isOperador(token)) {
@@ -244,6 +250,26 @@
             }
           }
         </div>
+        @if (pesquisa.supervisorIds?.length || pesquisa.dataAdmissaoInicio || pesquisa.dataAdmissaoFim) {
+          <div class="consulta-filtros">
+            @if (pesquisa.supervisorIds?.length) {
+              @for (supId of pesquisa.supervisorIds; track supId) {
+                <span class="filtro-chip">Supervisor: {{ supervisorNome(supId) }}</span>
+              }
+            }
+            @if (pesquisa.dataAdmissaoInicio) {
+              <span class="filtro-chip">Admitido após: {{ formatarDataAdmissao(pesquisa.dataAdmissaoInicio) }}</span>
+            }
+            @if (pesquisa.dataAdmissaoFim) {
+              <span class="filtro-chip">Admitido até: {{ formatarDataAdmissao(pesquisa.dataAdmissaoFim) }}</span>
+            }
+          </div>
+        }
+        @if (ultimaExecucao(pesquisa.id!); as data) {
+          <p class="pesquisa-data">Último relatório: {{ data }}</p>
+        } @else {
+          <p class="pesquisa-data">Nenhum relatório gerado</p>
+        }
 
         @if (searchResults() !== null) {
           @if (searchResults()!.length === 0) {

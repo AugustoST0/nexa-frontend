@@ -11,6 +11,8 @@ import { Tag } from '../../../core/model/Tag.model';
 import { Grupo } from '../../../core/model/Grupo.model';
 import { ColaboradorWithCalcs } from '../../../core/model/ColaboradorWithCalcs.model';
 import { AdvancedSearchDTO } from '../../../core/dto/AdvancedSearchDTO';
+import { isPesquisaSalva } from '../../../core/utils/grupo.util';
+import { MultiSelectComponent } from '../multi-select/multi-select';
 import { SearchableSelectComponent } from '../searchable-select/searchable-select';
 
 const OPERADORES = ['E', 'OU', 'NÃO POSSUI'];
@@ -18,7 +20,7 @@ const OPERADORES = ['E', 'OU', 'NÃO POSSUI'];
 @Component({
   selector: 'app-advanced-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, MultiSelectComponent, SearchableSelectComponent],
   templateUrl: './advanced-search.html',
   styleUrls: ['./advanced-search.css'],
 })
@@ -46,7 +48,7 @@ export class AdvancedSearchComponent implements OnInit {
 
   // Filtros adicionais (opcionais)
   colaboradores = signal<ColaboradorWithCalcs[]>([]);
-  buscaSupervisorId = signal('');
+  buscaSupervisorIds = signal<number[]>([]);
   buscaDataInicio = signal('');
   buscaDataFim = signal('');
 
@@ -55,7 +57,7 @@ export class AdvancedSearchComponent implements OnInit {
   );
 
   hasExtraFiltro = computed(() =>
-    !!this.buscaSupervisorId() || !!this.buscaDataInicio() || !!this.buscaDataFim()
+    this.buscaSupervisorIds().length > 0 || !!this.buscaDataInicio() || !!this.buscaDataFim()
   );
 
   tagSelectOptions = computed(() =>
@@ -105,7 +107,7 @@ export class AdvancedSearchComponent implements OnInit {
     this.grupoService.getAll().subscribe({
       next: (grupos) => {
         const recentes = grupos
-          .filter((g) => g.tokens && g.tokens.length > 0)
+          .filter(isPesquisaSalva)
           .sort((a, b) => {
             if (!a.criadoEm && !b.criadoEm) return 0;
             if (!a.criadoEm) return 1;
@@ -156,9 +158,10 @@ export class AdvancedSearchComponent implements OnInit {
 
     const partes: string[] = [];
     if (this.tokensAvancados().length > 0) partes.push(this.tokensAvancados().join(' '));
-    if (this.buscaSupervisorId()) {
-      const sup = this.colaboradores().find((c) => c.id === Number(this.buscaSupervisorId()));
-      if (sup) partes.push(`Supervisor: ${sup.nome}`);
+    if (this.buscaSupervisorIds().length > 0) {
+      const nomes = this.buscaSupervisorIds()
+        .map((id) => this.colaboradores().find((c) => c.id === id)?.nome ?? `#${id}`);
+      partes.push(`Supervisor: ${nomes.join(' ou ')}`);
     }
     if (this.buscaDataInicio()) partes.push(`Admitido após: ${this.buscaDataInicio()}`);
     if (this.buscaDataFim()) partes.push(`Admitido até: ${this.buscaDataFim()}`);
@@ -167,12 +170,10 @@ export class AdvancedSearchComponent implements OnInit {
     const payload = {
       nome,
       tokens: this.tokensAvancados(),
-      supervisorId: this.buscaSupervisorId() ? Number(this.buscaSupervisorId()) : undefined,
+      supervisorIds: this.buscaSupervisorIds().length > 0 ? this.buscaSupervisorIds() : undefined,
       dataAdmissaoInicio: this.buscaDataInicio() || undefined,
       dataAdmissaoFim: this.buscaDataFim() || undefined,
     };
-    // DEBUG temporário — remover após validar
-    console.log('[DEBUG salvarPesquisa] payload:', payload);
 
     this.grupoService.create(payload).subscribe({
       next: () => {
@@ -234,7 +235,7 @@ export class AdvancedSearchComponent implements OnInit {
     if (!this.canSearch()) return;
     this.search.emit({
       tokens: this.tokensAvancados(),
-      supervisorId: this.buscaSupervisorId() ? Number(this.buscaSupervisorId()) : undefined,
+      supervisorIds: this.buscaSupervisorIds().length > 0 ? this.buscaSupervisorIds() : undefined,
       dataAdmissaoInicio: this.buscaDataInicio() || undefined,
       dataAdmissaoFim: this.buscaDataFim() || undefined,
     });
@@ -245,7 +246,7 @@ export class AdvancedSearchComponent implements OnInit {
     this.showTagSelect.set(false);
     this.showOperadorButtons.set(false);
     this.tagSelectValue.set('');
-    this.buscaSupervisorId.set('');
+    this.buscaSupervisorIds.set([]);
     this.buscaDataInicio.set('');
     this.buscaDataFim.set('');
     this.tokensChange.emit([]);

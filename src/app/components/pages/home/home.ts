@@ -10,6 +10,7 @@ import { AuthService } from '../../../core/services/auth-service';
 import { AlertService } from '../../../core/services/alert-service';
 import { Grupo } from '../../../core/model/Grupo.model';
 import { Relatorio } from '../../../core/model/Relatorio.model';
+import { isPesquisaSalva } from '../../../core/utils/grupo.util';
 import { CardComponent } from '../../ui/card/card';
 
 const OPERADORES = ['E', 'OU', 'NÃO POSSUI'];
@@ -49,7 +50,7 @@ export class Home implements OnInit {
       relatorios: this.relatorioService.getAll(),
     }).subscribe({
       next: ({ grupos, relatorios }) => {
-        const recentes = grupos.filter((g) => g.tokens && g.tokens.length > 0).slice(-3).reverse();
+        const recentes = grupos.filter(isPesquisaSalva).slice(-3).reverse();
         this.pesquisasRecentes.set(recentes);
         this.loadPesquisaCounts(recentes);
         this.relatoriosRecentes.set(relatorios.slice(0, 3));
@@ -65,9 +66,14 @@ export class Home implements OnInit {
 
   private loadPesquisaCounts(pesquisas: Grupo[]) {
     for (const pesquisa of pesquisas) {
-      if (!pesquisa.id || !pesquisa.tokens?.length) continue;
+      if (!pesquisa.id) continue;
       const id = pesquisa.id;
-      this.colaboradorService.searchAdvanced({ tokens: pesquisa.tokens }).subscribe({
+      this.colaboradorService.searchAdvanced({
+        tokens: pesquisa.tokens,
+        supervisorIds: pesquisa.supervisorIds,
+        dataAdmissaoInicio: pesquisa.dataAdmissaoInicio,
+        dataAdmissaoFim: pesquisa.dataAdmissaoFim,
+      }).subscribe({
         next: (colaboradores) => {
           this.pesquisaCounts.update((counts) => ({ ...counts, [id]: colaboradores.length }));
         },

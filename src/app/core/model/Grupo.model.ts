@@ -4,7 +4,7 @@ export interface Grupo {
   descricao?: string;
   tagIds?: number[];
   tokens?: string[];
-  supervisorId?: number;
+  supervisorIds?: number[];
   dataAdmissaoInicio?: string;
   dataAdmissaoFim?: string;
   criadoEm?: string;
