@@ -34,14 +34,23 @@
         <span>Relatórios</span>
       </a>
     </nav>
-
-    <div class="sidebar-footer">
-      <button type="button" class="logout-button" (click)="onLogout()">
-        <lucide-icon [img]="LogOut" [size]="20"></lucide-icon>
-        <span>Sair</span>
-      </button>
-    </div>
   </aside>
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="top-bar-right">
+      <button class="user-menu-trigger" (click)="toggleUserMenu($event)">
+        <span class="user-name">{{ nomeUsuario()?.name }}</span>
+        <lucide-icon [img]="UserCircle" [size]="32"></lucide-icon>
+      </button>
+      @if (showUserMenu()) {
+        <div class="user-dropdown" (click)="$event.stopPropagation()">
+          <button class="user-dropdown-item" (click)="onPerfil()">Meu Perfil</button>
+          <button class="user-dropdown-item danger" (click)="onLogout()">Sair</button>
+        </div>
+      }
+    </div>
+  </header>
 
   <!-- Main Content -->
   <main class="main-content">

@@ -31,6 +31,7 @@ export class ColaboradorFilterComponent {
   private readonly cdr = inject(ChangeDetectorRef);
 
   @Output() gerenciarSupervisao = new EventEmitter<ColaboradorFilterResponseDTO>();
+  @Output() buscaAtiva = new EventEmitter<boolean>();
 
   searchMode: 'common' | 'advanced' = 'common';
   resultados: ColaboradorFilterResponseDTO[] = [];
@@ -45,6 +46,7 @@ export class ColaboradorFilterComponent {
     this.mensagem = '';
     this.commonSearchData = {};
     this.advancedTokens = [];
+    this.buscaAtiva.emit(false);
   }
 
   onCommonSearch(criteria: SimpleSearchDTO): void {
@@ -84,14 +86,16 @@ export class ColaboradorFilterComponent {
         } else {
           this.mensagem = `${results.length} colaborador(es) encontrado(s)`;
         }
+        this.buscaAtiva.emit(results.length > 0);
         this.loading = false;
         this.cdr.detectChanges(); // Força detecção de mudanças
       },
       error: (error) => {
         clearTimeout(timeoutId);
         console.error('❌ Erro na busca comum:', error);
-        
+
         this.mensagem = this.errorHandler.getErrorMessage(error);
+        this.buscaAtiva.emit(false);
         this.loading = false;
         this.cdr.detectChanges(); // Força detecção de mudanças
       },
@@ -104,6 +108,7 @@ export class ColaboradorFilterComponent {
     this.commonSearchData = {};
     this.resultados = [];
     this.mensagem = '';
+    this.buscaAtiva.emit(false);
   }
 
   onAdvancedSearch(params: AdvancedSearchDTO): void {
@@ -146,14 +151,16 @@ export class ColaboradorFilterComponent {
         } else {
           this.mensagem = `${results.length} colaborador(es) encontrado(s)`;
         }
+        this.buscaAtiva.emit(results.length > 0);
         this.loading = false;
         this.cdr.detectChanges(); // Força detecção de mudanças
       },
       error: (error) => {
         clearTimeout(timeoutId);
         console.error('❌ Erro na busca avançada:', error);
-        
+
         this.mensagem = this.errorHandler.getErrorMessage(error);
+        this.buscaAtiva.emit(false);
         this.loading = false;
         this.cdr.detectChanges(); // Força detecção de mudanças
       },
@@ -164,6 +171,7 @@ export class ColaboradorFilterComponent {
     this.advancedTokens = [];
     this.resultados = [];
     this.mensagem = '';
+    this.buscaAtiva.emit(false);
   }
 
   onTokensChange(tokens: string[]): void {

@@ -1,4 +1,7 @@
 <div class="advanced-search">
+  <!-- Botão de ajuda -->
+  <button type="button" class="help-btn" (click)="showHelp.set(true)" title="Ajuda sobre os filtros">?</button>
+
   <!-- Pesquisas salvas -->
   <div class="pesquisas-salvas">
     <span class="pesquisas-label">Pesquisas Salvas</span>
@@ -106,10 +109,92 @@
     <button type="button" (click)="onSearch()" [disabled]="!canSearch()" class="btn btn-primary">Buscar</button>
     <button type="button" (click)="onClear(); pesquisaSelect.value = ''" class="btn btn-secondary">Limpar</button>
     @if (canSave()) {
-      <button type="button" (click)="salvarPesquisa()" class="btn-save">
+      <button type="button" (click)="abrirModalNome()" class="btn-save">
         <lucide-icon [img]="Save" [size]="16"></lucide-icon>
         <span>Salvar Pesquisa</span>
       </button>
     }
   </div>
 </div>
+
+<!-- Modal: Ajuda sobre filtros -->
+@if (showHelp()) {
+  <div class="nome-modal-overlay" (click)="showHelp.set(false)">
+    <div class="help-modal-card" (click)="$event.stopPropagation()">
+      <div class="help-modal-header">
+        <h3 class="nome-modal-title">Como usar os filtros</h3>
+        <button type="button" class="help-close-btn" (click)="showHelp.set(false)">×</button>
+      </div>
+
+      <div class="help-section">
+        <h4 class="help-section-title">Tags</h4>
+        <p class="help-section-text">Adicione tags para encontrar colaboradores que as possuem. Cada tag representa uma habilidade ou característica cadastrada no sistema.</p>
+      </div>
+
+      <div class="help-section">
+        <h4 class="help-section-title">Operadores</h4>
+        <div class="help-op-list">
+          <div class="help-op-item">
+            <span class="pill-op-demo">E</span>
+            <span class="help-op-desc">Colaboradores que possuem <strong>ambas</strong> as tags adjacentes.</span>
+          </div>
+          <div class="help-op-item">
+            <span class="pill-op-demo">OU</span>
+            <span class="help-op-desc">Colaboradores que possuem <strong>pelo menos uma</strong> das tags adjacentes.</span>
+          </div>
+          <div class="help-op-item">
+            <span class="pill-op-demo">NÃO POSSUI</span>
+            <span class="help-op-desc"><strong>Exclui</strong> colaboradores que possuem a tag seguinte.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-section">
+        <h4 class="help-section-title">Filtros Adicionais</h4>
+        <p class="help-section-text"><strong>Supervisor:</strong> filtra colaboradores subordinados a qualquer um dos supervisores selecionados, independentemente do tipo de supervisão.</p>
+        <p class="help-section-text"><strong>Admitido após / Admitido até:</strong> delimita o resultado por data de admissão. Pode ser usado em conjunto com os outros filtros.</p>
+      </div>
+
+      <div class="help-example">
+        <span class="help-example-label">Exemplo</span>
+        <div class="builder-tokens">
+          <span class="builder-token"><span class="pill-tag">Angular</span></span>
+          <span class="builder-token"><span class="pill-op">E</span></span>
+          <span class="builder-token"><span class="pill-tag">Java</span></span>
+          <span class="builder-token"><span class="pill-op">NÃO POSSUI</span></span>
+          <span class="builder-token"><span class="pill-tag">Estagiário</span></span>
+        </div>
+        <p class="help-example-desc">Colaboradores com Angular E Java, que não sejam estagiários.</p>
+      </div>
+
+      <div class="nome-modal-actions">
+        <button type="button" class="btn btn-primary" (click)="showHelp.set(false)">Entendi</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showNomeModal()) {
+  <div class="nome-modal-overlay" (click)="showNomeModal.set(false)">
+    <div class="nome-modal-card" (click)="$event.stopPropagation()">
+      <h3 class="nome-modal-title">Salvar Pesquisa</h3>
+      <div class="nome-modal-field">
+        <label>Nome da pesquisa <span class="nome-modal-opcional">(opcional)</span></label>
+        <input
+          type="text"
+          class="nome-modal-input"
+          placeholder="Gerado automaticamente se vazio"
+          maxlength="100"
+          [ngModel]="nomeParaSalvar()"
+          (ngModelChange)="nomeParaSalvar.set($event)"
+          (keydown.enter)="confirmarSalvar()"
+          (keydown.escape)="showNomeModal.set(false)"
+        />
+      </div>
+      <div class="nome-modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="showNomeModal.set(false)">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="confirmarSalvar()">Salvar Pesquisa</button>
+      </div>
+    </div>
+  </div>
+}

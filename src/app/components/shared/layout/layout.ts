@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { LucideAngularModule, Home, Folder, Users, UserPlus, BarChart3, LogOut, Layers } from 'lucide-angular';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LucideAngularModule, Home, Folder, Users, UserPlus, BarChart3, LogOut, Layers, UserCircle } from 'lucide-angular';
 import { AuthService } from '../../../core/services/auth-service';
 
 @Component({
@@ -12,6 +13,7 @@ import { AuthService } from '../../../core/services/auth-service';
 })
 export class Layout {
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly Home = Home;
   readonly Folder = Folder;
@@ -20,12 +22,32 @@ export class Layout {
   readonly BarChart3 = BarChart3;
   readonly LogOut = LogOut;
   readonly Layers = Layers;
+  readonly UserCircle = UserCircle;
+
+  showUserMenu = signal(false);
+  nomeUsuario = toSignal(this.authService.currentUser$, { initialValue: null });
+
+  @HostListener('document:click')
+  closeUserMenu(): void {
+    this.showUserMenu.set(false);
+  }
+
+  toggleUserMenu(event: Event): void {
+    event.stopPropagation();
+    this.showUserMenu.update(v => !v);
+  }
+
+  onPerfil(): void {
+    this.showUserMenu.set(false);
+    this.router.navigate(['/perfil']);
+  }
 
   isAdmin(): boolean {
     return this.authService.isAdmin();
   }
 
-  onLogout() {
+  onLogout(): void {
+    this.showUserMenu.set(false);
     this.authService.logout();
   }
 }

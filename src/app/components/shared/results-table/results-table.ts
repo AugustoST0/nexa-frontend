@@ -10,7 +10,7 @@ import { ModalService } from '../../../core/services/modal-service';
 import { DetailModalConfig, DetailField } from '../../../core/model/DetailModalConfig.model';
 import { ConfirmModalConfig } from '../../../core/model/ConfirmModalConfig.model';
 import { ButtonComponent } from '../../ui/button/button';
-import { LucideAngularModule, Eye, Edit, Trash2, Network } from 'lucide-angular';
+import { LucideAngularModule, Eye, Edit, Trash2, Network, ChevronUp, ChevronDown } from 'lucide-angular';
 
 @Component({
   selector: 'app-results-table',
@@ -36,6 +36,37 @@ export class ResultsTableComponent {
   readonly Edit = Edit;
   readonly Trash2 = Trash2;
   readonly Network = Network;
+  readonly ChevronUp = ChevronUp;
+  readonly ChevronDown = ChevronDown;
+
+  sortColumn = 'nome';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  toggleSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+  }
+
+  get resultadosOrdenados(): ColaboradorFilterResponseDTO[] {
+    return [...this.resultados].sort((a, b) => {
+      let valA: string;
+      let valB: string;
+      if (this.sortColumn === 'supervisor') {
+        valA = a.supervisor?.nome ?? '';
+        valB = b.supervisor?.nome ?? '';
+      } else {
+        valA = String((a as any)[this.sortColumn] ?? '');
+        valB = String((b as any)[this.sortColumn] ?? '');
+      }
+      return this.sortDirection === 'asc'
+        ? valA.localeCompare(valB, 'pt-BR')
+        : valB.localeCompare(valA, 'pt-BR');
+    });
+  }
 
   onGerenciarSupervisao(resultado: ColaboradorFilterResponseDTO) {
     this.gerenciarSupervisao.emit(resultado);

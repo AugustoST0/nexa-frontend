@@ -17,6 +17,8 @@ export const USER_ENDPOINTS = {
     REGISTER: `${API_ROUTES.USERS}/register`,
     UPDATE: (id: number) => `${API_ROUTES.USERS}/${id}`,
     DELETE: (id: number) => `${API_ROUTES.USERS}/${id}`,
+    GET_ME: `${API_ROUTES.USERS}/me`,
+    UPDATE_ME: `${API_ROUTES.USERS}/me`,
 } as const;
 
 export const AUTH_ENDPOINTS = {

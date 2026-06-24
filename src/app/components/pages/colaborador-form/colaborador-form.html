@@ -161,6 +161,29 @@
             <p class="no-tags">Nenhuma tag disponível. <a routerLink="/catalogo">Criar tags no catálogo</a></p>
           } @else {
             <div class="tags-selector-wrapper" (click)="$event.stopPropagation()">
+              @if (selectedTags().length > 0) {
+                <div class="tags-chips-row">
+                  @for (tagId of selectedTags(); track tagId) {
+                    @for (tag of availableTags(); track tag.id) {
+                      @if (tag.id === tagId) {
+                        <button
+                          type="button"
+                          class="selected-tag-button"
+                          (click)="removeTag(tag.id!)"
+                          title="Clique para remover"
+                        >
+                          <span class="tag-text">{{ tag.nome }}</span>
+                          <span class="tag-remove-icon">×</span>
+                        </button>
+                      }
+                    }
+                  }
+                  <button type="button" class="tags-clear-all" (click)="clearAllTags()">
+                    × Remover todos
+                  </button>
+                </div>
+              }
+
               <div class="tags-input-group">
                 <input
                   type="text"
@@ -208,31 +231,6 @@
                   </div>
                 </div>
               }
-            </div>
-
-            <div class="selected-tags">
-              <label>Tags Selecionadas:</label>
-              <div class="selected-tags-list">
-                @if (selectedTags().length === 0) {
-                  <span class="no-selected">Nenhuma tag selecionada</span>
-                } @else {
-                  @for (tagId of selectedTags(); track tagId) {
-                    @for (tag of availableTags(); track tag.id) {
-                      @if (tag.id === tagId) {
-                        <button
-                          type="button"
-                          class="selected-tag-button"
-                          (click)="removeTag(tag.id!)"
-                          title="Clique para remover"
-                        >
-                          <span class="tag-text">{{ tag.nome }}</span>
-                          <span class="tag-remove-icon">×</span>
-                        </button>
-                      }
-                    }
-                  }
-                }
-              </div>
             </div>
           }
         </div>

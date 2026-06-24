@@ -1,0 +1,101 @@
+<div class="perfil-container">
+  <div class="page-header">
+    <h1>Meu Perfil</h1>
+    <p>Gerencie suas informações de acesso</p>
+  </div>
+
+  <div class="perfil-card">
+    @if (currentUser()?.admin) {
+      <span class="admin-badge">Administrador</span>
+    }
+
+    @if (!editMode()) {
+      <div class="perfil-fields">
+        <div class="perfil-field">
+          <label>Nome</label>
+          <span>{{ currentUser()?.name }}</span>
+        </div>
+        <div class="perfil-field">
+          <label>E-mail</label>
+          <span>{{ currentUser()?.email }}</span>
+        </div>
+      </div>
+
+      <app-button variant="outline" size="md" (clicked)="onEdit()">
+        Editar
+      </app-button>
+    } @else {
+      <form [formGroup]="perfilForm" (ngSubmit)="onSave()">
+        <app-form-field
+          label="Nome"
+          [required]="true"
+          htmlFor="name"
+          [error]="getErrorMessage('name')"
+        >
+          <app-input
+            id="name"
+            type="text"
+            formControlName="name"
+            placeholder="Seu nome completo"
+            [error]="hasError('name')"
+          ></app-input>
+        </app-form-field>
+
+        <app-form-field
+          label="E-mail"
+          [required]="true"
+          htmlFor="email"
+          [error]="getErrorMessage('email')"
+        >
+          <app-input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="seu@email.com"
+            [error]="hasError('email')"
+          ></app-input>
+        </app-form-field>
+
+        <app-form-field
+          label="Nova Senha"
+          htmlFor="newPassword"
+          hint="Deixe em branco para não alterar"
+          [error]="getErrorMessage('newPassword')"
+        >
+          <app-input
+            id="newPassword"
+            type="password"
+            formControlName="newPassword"
+            placeholder="Mínimo 5 caracteres"
+            [error]="hasError('newPassword')"
+          ></app-input>
+        </app-form-field>
+
+        @if (hasPassword) {
+          <app-form-field
+            label="Confirmar Nova Senha"
+            htmlFor="confirmPassword"
+            [error]="getErrorMessage('confirmPassword')"
+          >
+            <app-input
+              id="confirmPassword"
+              type="password"
+              formControlName="confirmPassword"
+              placeholder="Repita a nova senha"
+              [error]="hasError('confirmPassword')"
+            ></app-input>
+          </app-form-field>
+        }
+
+        <div class="form-actions">
+          <app-button type="button" variant="outline" size="md" (clicked)="onCancel()">
+            Cancelar
+          </app-button>
+          <app-button type="submit" variant="primary" size="md" [loading]="saving()">
+            Salvar
+          </app-button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

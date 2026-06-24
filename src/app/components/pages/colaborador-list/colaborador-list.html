@@ -14,35 +14,59 @@
 
   <!-- Filter Component -->
   <div class="filter-section">
-    <app-colaborador-filter (gerenciarSupervisao)="openSupervisaoModal($event)"></app-colaborador-filter>
+    <app-colaborador-filter
+      (gerenciarSupervisao)="openSupervisaoModal($event)"
+      (buscaAtiva)="buscaAtiva.set($event)"
+    ></app-colaborador-filter>
   </div>
 
-  @if (loading()) {
-    <div class="loading">Carregando...</div>
-  } @else if (colaboradores().length === 0) {
-    <app-card variant="bordered" class="empty-state-card">
-      <div class="empty-state">
-        <p>Nenhum colaborador cadastrado</p>
-        <app-button variant="primary" size="lg" (clicked)="onNew()">
-          Cadastrar Primeiro Colaborador
-        </app-button>
-      </div>
-    </app-card>
-  } @else {
-    <app-card variant="elevated" class="table-card">
-      <div class="table-container">
-        <table class="colaboradores-table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Matrícula</th>
-              <th>Cargo</th>
-              <th>Departamento</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (colaborador of colaboradores(); track colaborador.id) {
+  @if (!buscaAtiva()) {
+    @if (loading()) {
+      <div class="loading">Carregando...</div>
+    } @else if (colaboradores().length === 0) {
+      <app-card variant="bordered" class="empty-state-card">
+        <div class="empty-state">
+          <p>Nenhum colaborador cadastrado</p>
+          <app-button variant="primary" size="lg" (clicked)="onNew()">
+            Cadastrar Primeiro Colaborador
+          </app-button>
+        </div>
+      </app-card>
+    } @else {
+      <app-card variant="elevated" class="table-card">
+        <div class="table-container">
+          <table class="colaboradores-table">
+            <thead>
+              <tr>
+                <th class="th-sortable" (click)="toggleSort('nome')">
+                  Nome
+                  @if (sortColumn() === 'nome') {
+                    <lucide-icon [img]="sortDirection() === 'asc' ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+                  }
+                </th>
+                <th class="th-sortable" (click)="toggleSort('matricula')">
+                  Matrícula
+                  @if (sortColumn() === 'matricula') {
+                    <lucide-icon [img]="sortDirection() === 'asc' ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+                  }
+                </th>
+                <th class="th-sortable" (click)="toggleSort('cargo')">
+                  Cargo
+                  @if (sortColumn() === 'cargo') {
+                    <lucide-icon [img]="sortDirection() === 'asc' ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+                  }
+                </th>
+                <th class="th-sortable" (click)="toggleSort('departamento')">
+                  Departamento
+                  @if (sortColumn() === 'departamento') {
+                    <lucide-icon [img]="sortDirection() === 'asc' ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+                  }
+                </th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (colaborador of colaboradoresOrdenados(); track colaborador.id) {
               <tr>
                 <td>{{ colaborador.nome }}</td>
                 <td>{{ colaborador.matricula }}</td>
@@ -87,7 +111,8 @@
           </tbody>
         </table>
       </div>
-    </app-card>
+      </app-card>
+    }
   }
 </div>
 

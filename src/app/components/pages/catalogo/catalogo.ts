@@ -74,6 +74,7 @@ export class Catalogo implements OnInit {
   showTagSelect = signal(false);
   showOperadorButtons = signal(false);
   tagSelectValue = signal('');
+  formNomePesquisa = signal('');
 
   // Filtros adicionais (opcionais)
   colaboradores = signal<ColaboradorWithCalcs[]>([]);
@@ -156,6 +157,46 @@ export class Catalogo implements OnInit {
     if (!iso) return '';
     const [y, m, d] = iso.split('-');
     return `${d}/${m}/${y}`;
+  }
+
+  formatarData(iso: string): string {
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR') + ' às ' +
+      d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  relatoriosDoPesquisa(grupoId: number): Relatorio[] {
+    return this.relatorios()
+      .filter((r) => r.grupoId === grupoId)
+      .sort((a, b) => new Date(b.geradoEm).getTime() - new Date(a.geradoEm).getTime());
+  }
+
+  downloadCsv(id: number): void {
+    this.relatorioService.downloadCsv(id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio-${id}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.alertService.error('Erro ao baixar CSV'),
+    });
+  }
+
+  downloadPdf(id: number): void {
+    this.relatorioService.downloadPdf(id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio-${id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.alertService.error('Erro ao baixar PDF'),
+    });
   }
 
   isOperador(token: string): boolean {
@@ -280,6 +321,7 @@ export class Catalogo implements OnInit {
     this.formSupervisorIds.set([]);
     this.formDataInicio.set('');
     this.formDataFim.set('');
+    this.formNomePesquisa.set('');
     this.showNewSearch.set(true);
   }
 
@@ -321,7 +363,19 @@ export class Catalogo implements OnInit {
     }
 
     const tokens = this.newTokens();
-    const nome = tokens.join(' ') || 'Pesquisa personalizada';
+    let nome = this.formNomePesquisa().trim();
+    if (!nome) {
+      const partes: string[] = [];
+      if (tokens.length > 0) partes.push(tokens.join(' '));
+      if (this.formSupervisorIds().length > 0) {
+        const nomes = this.formSupervisorIds()
+          .map((id) => this.colaboradores().find((c) => c.id === id)?.nome ?? `#${id}`);
+        partes.push(`Supervisor: ${nomes.join(' ou ')}`);
+      }
+      if (this.formDataInicio()) partes.push(`Admitido após: ${this.formDataInicio()}`);
+      if (this.formDataFim()) partes.push(`Admitido até: ${this.formDataFim()}`);
+      nome = partes.join(' | ') || 'Pesquisa personalizada';
+    }
 
     this.grupoService.create({
       nome,
@@ -386,7 +440,6 @@ export class Catalogo implements OnInit {
       next: () => {
         this.alertService.success('Relatório gerado com sucesso');
         this.loadRelatorios();
-        this.closeSavedSearch();
       },
       error: (err) => {
         this.alertService.error('Erro ao gerar relatório');

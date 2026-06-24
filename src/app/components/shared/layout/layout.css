@@ -73,41 +73,97 @@
   flex-shrink: 0;
 }
 
-.sidebar-footer {
-  padding: var(--spacing-3);
-  border-top: 1px solid #1E293B;
-}
-
-.logout-button {
+/* Top Bar */
+.top-bar {
+  position: fixed;
+  left: 240px;
+  right: 0;
+  top: 0;
+  height: 56px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  padding: 0 var(--spacing-6);
+}
+
+.top-bar-right {
+  margin-left: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--radius-md);
+  color: #0F172A;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: inherit;
+  transition: background-color var(--transition-base);
+}
+
+.user-menu-trigger:hover {
+  background-color: #F1F5F9;
+}
+
+.user-menu-trigger lucide-icon {
+  color: #4F46E5;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  min-width: 160px;
+  z-index: calc(var(--z-sticky) + 1);
+  overflow: hidden;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
   width: 100%;
   padding: var(--spacing-3) var(--spacing-4);
   border: none;
-  border-radius: var(--radius-md);
-  background-color: transparent;
-  color: #94A3B8;
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
+  background: transparent;
   font-family: inherit;
-  text-align: left;
+  font-size: var(--font-size-sm);
+  color: #0F172A;
   cursor: pointer;
-  transition: all var(--transition-base);
+  text-align: left;
+  transition: background-color var(--transition-base);
 }
 
-.logout-button:hover {
-  background-color: #1E293B;
-  color: #ffffff;
+.user-dropdown-item:hover {
+  background-color: #F8FAFC;
 }
 
-.logout-button lucide-icon {
-  flex-shrink: 0;
+.user-dropdown-item.danger {
+  color: #EF4444;
+}
+
+.user-dropdown-item.danger:hover {
+  background-color: #FEF2F2;
 }
 
 .main-content {
   flex: 1;
   margin-left: 240px;
+  padding-top: 56px;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -119,6 +175,10 @@
 
   .main-content {
     margin-left: 200px;
+  }
+
+  .top-bar {
+    left: 200px;
   }
 
   .logo {
@@ -138,5 +198,9 @@
 
   .main-content {
     margin-left: 0;
+  }
+
+  .top-bar {
+    left: 0;
   }
 }

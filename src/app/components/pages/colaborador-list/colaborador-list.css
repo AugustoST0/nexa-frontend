@@ -99,6 +99,16 @@
   border-bottom: 2px solid var(--color-border-medium);
 }
 
+.th-sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.th-sortable:hover {
+  color: #4F46E5;
+}
+
 .colaboradores-table td {
   padding: var(--spacing-4);
   border-bottom: 1px solid var(--color-border-light);

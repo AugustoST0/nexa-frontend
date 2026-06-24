@@ -9,28 +9,40 @@
     <table class="results-table">
       <thead>
         <tr>
-          <th>Nome</th>
-          <th>Matrícula</th>
-          <th>Cargo</th>
-          <th>Departamento</th>
-          <th>Supervisor</th>
+          <th class="th-sortable" (click)="toggleSort('nome')">
+            Nome
+            @if (sortColumn === 'nome') {
+              <lucide-icon [img]="sortDirection === 'asc' ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+            }
+          </th>
+          <th class="th-sortable" (click)="toggleSort('matricula')">
+            Matrícula
+            @if (sortColumn === 'matricula') {
+              <lucide-icon [img]="sortDirection === 'asc' ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+            }
+          </th>
+          <th class="th-sortable" (click)="toggleSort('cargo')">
+            Cargo
+            @if (sortColumn === 'cargo') {
+              <lucide-icon [img]="sortDirection === 'asc' ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+            }
+          </th>
+          <th class="th-sortable" (click)="toggleSort('departamento')">
+            Departamento
+            @if (sortColumn === 'departamento') {
+              <lucide-icon [img]="sortDirection === 'asc' ? ChevronUp : ChevronDown" [size]="14"></lucide-icon>
+            }
+          </th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
-        @for (resultado of resultados; track resultado.id) {
+        @for (resultado of resultadosOrdenados; track resultado.id) {
           <tr>
             <td>{{ resultado.nome }}</td>
             <td>{{ resultado.matricula }}</td>
             <td>{{ resultado.cargo }}</td>
             <td>{{ resultado.departamento }}</td>
-            <td>
-              @if (resultado.supervisor) {
-                {{ resultado.supervisor.nome }}
-              } @else {
-                <span class="no-supervisor">Sem supervisor</span>
-              }
-            </td>
             <td class="actions">
               <app-button
                 variant="ghost"

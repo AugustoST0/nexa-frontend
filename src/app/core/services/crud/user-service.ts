@@ -33,4 +33,12 @@ export class UserService {
   delete(id: number): Observable<void> {
     return this.httpService.delete<void>(USER_ENDPOINTS.DELETE(id));
   }
+
+  getMe(): Observable<User> {
+    return this.httpService.get<User>(USER_ENDPOINTS.GET_ME);
+  }
+
+  updateMe(dto: { name?: string; email?: string; password?: string }): Observable<UserUpdateResponseDTO> {
+    return this.httpService.put<UserUpdateResponseDTO>(USER_ENDPOINTS.UPDATE_ME, dto);
+  }
 }

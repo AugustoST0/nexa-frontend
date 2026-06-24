@@ -39,12 +39,16 @@ export class AdvancedSearchComponent implements OnInit {
   readonly Save = Save;
   readonly operadores = OPERADORES;
 
+  showHelp = signal(false);
+
   allTags = signal<Tag[]>([]);
   tokensAvancados = signal<string[]>([]);
   showTagSelect = signal(false);
   showOperadorButtons = signal(false);
   tagSelectValue = signal('');
   pesquisasSalvas = signal<Grupo[]>([]);
+  showNomeModal = signal(false);
+  nomeParaSalvar = signal('');
 
   // Filtros adicionais (opcionais)
   colaboradores = signal<ColaboradorWithCalcs[]>([]);
@@ -153,7 +157,19 @@ export class AdvancedSearchComponent implements OnInit {
     this.tokensChange.emit(this.tokensAvancados());
   }
 
-  salvarPesquisa(): void {
+  abrirModalNome(): void {
+    if (!this.canSave()) return;
+    this.nomeParaSalvar.set('');
+    this.showNomeModal.set(true);
+  }
+
+  confirmarSalvar(): void {
+    const nomeCustom = this.nomeParaSalvar().trim();
+    this.showNomeModal.set(false);
+    this.salvarPesquisa(nomeCustom);
+  }
+
+  salvarPesquisa(nomeCustom?: string): void {
     if (!this.canSave()) return;
 
     const partes: string[] = [];
@@ -165,7 +181,8 @@ export class AdvancedSearchComponent implements OnInit {
     }
     if (this.buscaDataInicio()) partes.push(`Admitido após: ${this.buscaDataInicio()}`);
     if (this.buscaDataFim()) partes.push(`Admitido até: ${this.buscaDataFim()}`);
-    const nome = partes.join(' | ') || 'Pesquisa personalizada';
+    const nomeGerado = partes.join(' | ') || 'Pesquisa personalizada';
+    const nome = nomeCustom || nomeGerado;
 
     const payload = {
       nome,

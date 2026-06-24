@@ -11,13 +11,12 @@ import { AlertService } from '../../../core/services/alert-service';
 import { Grupo } from '../../../core/model/Grupo.model';
 import { Relatorio } from '../../../core/model/Relatorio.model';
 import { isPesquisaSalva } from '../../../core/utils/grupo.util';
-import { CardComponent } from '../../ui/card/card';
 
 const OPERADORES = ['E', 'OU', 'NÃO POSSUI'];
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, LucideAngularModule, CardComponent],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './home.html',
   styleUrl: './home.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -215,35 +215,32 @@
   font-size: var(--font-size-sm);
 }
 
-/* Selected Tags Display */
-.selected-tags {
-  margin-top: var(--spacing-6);
-}
-
-.selected-tags label {
-  display: block;
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+/* Chips de tags acima do input */
+.tags-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
   margin-bottom: var(--spacing-3);
 }
 
-.selected-tags-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  background-color: var(--color-bg-secondary);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-light);
-  min-height: 50px;
+.tags-clear-all {
+  display: inline-flex;
   align-items: center;
+  gap: 4px;
+  padding: var(--spacing-1) var(--spacing-3);
+  border: 1px solid #FCA5A5;
+  background: transparent;
+  color: #EF4444;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color var(--transition-base);
 }
 
-.no-selected {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
-  font-style: italic;
+.tags-clear-all:hover {
+  background-color: #FEF2F2;
 }
 
 .selected-tag-button {

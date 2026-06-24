@@ -5,7 +5,7 @@
 
   <div class="cards-grid">
     <!-- Pesquisas Recentes -->
-    <app-card variant="elevated" class="home-card">
+    <div class="home-card">
       <div class="card-head">
         <lucide-icon [img]="Search" [size]="20"></lucide-icon>
         <h2>Pesquisas Recentes</h2>
@@ -17,6 +17,7 @@
         } @else {
           @for (pesquisa of pesquisasRecentes(); track pesquisa.id) {
             <div class="list-item">
+              <h3 class="item-title">{{ pesquisa.nome }}</h3>
               <div class="item-row">
                 <p class="item-date">{{ formatarData(pesquisa.criadoEm) }}</p>
                 @if (pesquisaCounts()[pesquisa.id!] !== undefined) {
@@ -40,10 +41,10 @@
       <div class="card-footer">
         <button type="button" class="ver-mais" (click)="verPesquisas()">Ver mais</button>
       </div>
-    </app-card>
+    </div>
 
     <!-- Relatórios Recentes -->
-    <app-card variant="elevated" class="home-card">
+    <div class="home-card">
       <div class="card-head">
         <lucide-icon [img]="FileText" [size]="20"></lucide-icon>
         <h2>Relatórios Recentes</h2>
@@ -68,6 +69,6 @@
       <div class="card-footer">
         <button type="button" class="ver-mais" (click)="verRelatorios()">Ver mais</button>
       </div>
-    </app-card>
+    </div>
   </div>
 </div>

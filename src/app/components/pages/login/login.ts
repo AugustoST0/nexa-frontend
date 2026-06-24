@@ -37,7 +37,7 @@ export class Login implements OnInit {
       .pipe(take(1))
       .subscribe((currentUserExists) => {
         if (currentUserExists) {
-          this.router.navigate(['/catalogo']);
+          this.router.navigate(['/home']);
         }
       });
   }
@@ -57,7 +57,7 @@ export class Login implements OnInit {
       .subscribe({
         next: () => {
           this.alertService.success('Login efetivado com sucesso.');
-          this.router.navigate(['/catalogo']);
+          this.router.navigate(['/home']);
         },
         error: (err) => {
           if (err.status === 401) {

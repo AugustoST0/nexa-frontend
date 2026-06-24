@@ -115,6 +115,10 @@ export class ColaboradorForm implements OnInit {
     this.selectedTags.set(current.filter(id => id !== tagId));
   }
 
+  clearAllTags(): void {
+    this.selectedTags.set([]);
+  }
+
   confirmTagSelection(): void {
     this.closeTagsDropdown();
     this.tagSearchInput.set('');

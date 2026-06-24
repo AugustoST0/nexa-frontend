@@ -15,7 +15,7 @@ import { ButtonComponent } from '../../ui/button/button';
 import { CardComponent } from '../../ui/card/card';
 import { ColaboradorFilterComponent } from '../../shared/colaborador-filter/colaborador-filter';
 import { SearchableSelectComponent } from '../../shared/searchable-select/searchable-select';
-import { LucideAngularModule, Eye, Edit, Trash2, Network, X, Users, UserMinus } from 'lucide-angular';
+import { LucideAngularModule, Eye, Edit, Trash2, Network, X, Users, UserMinus, ChevronUp, ChevronDown } from 'lucide-angular';
 
 @Component({
   selector: 'app-colaborador-list',
@@ -33,6 +33,31 @@ export class ColaboradorList implements OnInit {
 
   colaboradores = signal<ColaboradorWithCalcs[]>([]);
   loading = signal(false);
+  buscaAtiva = signal(false);
+
+  sortColumn = signal<string>('nome');
+  sortDirection = signal<'asc' | 'desc'>('asc');
+
+  colaboradoresOrdenados = computed(() => {
+    const col = this.sortColumn();
+    const dir = this.sortDirection();
+    return [...this.colaboradores()].sort((a, b) => {
+      const valA = String((a as any)[col] ?? '');
+      const valB = String((b as any)[col] ?? '');
+      return dir === 'asc'
+        ? valA.localeCompare(valB, 'pt-BR')
+        : valB.localeCompare(valA, 'pt-BR');
+    });
+  });
+
+  toggleSort(column: string): void {
+    if (this.sortColumn() === column) {
+      this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortColumn.set(column);
+      this.sortDirection.set('asc');
+    }
+  }
 
   readonly Eye = Eye;
   readonly Edit = Edit;
@@ -41,6 +66,8 @@ export class ColaboradorList implements OnInit {
   readonly X = X;
   readonly Users = Users;
   readonly UserMinus = UserMinus;
+  readonly ChevronUp = ChevronUp;
+  readonly ChevronDown = ChevronDown;
 
   // Modal "Gerenciar Supervisão"
   showSupervisaoModal = signal(false);

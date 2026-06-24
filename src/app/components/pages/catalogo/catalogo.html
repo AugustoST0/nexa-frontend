@@ -47,7 +47,7 @@
       } @else {
         <div class="tags-grid">
           @for (tag of filteredTags(); track tag.id) {
-            <app-card variant="bordered" [hoverable]="true" class="tag-card">
+            <div class="tag-card">
               <div class="tag-header">
                 <app-badge variant="primary" size="md" [title]="tag.nome">{{ tag.nome }}</app-badge>
                 <div class="tag-actions">
@@ -62,7 +62,7 @@
               @if (tag.descricao) {
                 <p class="tag-description">{{ tag.descricao }}</p>
               }
-            </app-card>
+            </div>
           }
         </div>
       }
@@ -135,6 +135,18 @@
       </div>
 
       <div class="modal-body">
+        <div class="field">
+          <label>Nome da pesquisa <span class="field-opcional">(opcional)</span></label>
+          <input
+            type="text"
+            class="modal-input"
+            placeholder="Gerado automaticamente se vazio"
+            maxlength="100"
+            [ngModel]="formNomePesquisa()"
+            (ngModelChange)="formNomePesquisa.set($event)"
+          />
+        </div>
+
         <div class="builder-preview">
           <span class="preview-label">Sua pesquisa:</span>
           @if (newTokens().length === 0) {
@@ -299,6 +311,26 @@
             </div>
           }
         }
+
+        <div class="rel-anteriores">
+          <h4>Relatórios Anteriores</h4>
+          @if (relatoriosDoPesquisa(pesquisa.id!).length === 0) {
+            <p class="empty-text">Nenhum relatório gerado ainda</p>
+          } @else {
+            @for (r of relatoriosDoPesquisa(pesquisa.id!); track r.id) {
+              <div class="rel-item">
+                <div class="rel-info">
+                  <span class="rel-titulo">{{ r.titulo }}</span>
+                  <span class="rel-meta">{{ r.totalColaboradores }} colaborador(es) · {{ formatarData(r.geradoEm) }}</span>
+                </div>
+                <div class="rel-acoes">
+                  <button type="button" class="rel-btn" (click)="downloadCsv(r.id)" title="Baixar CSV">CSV</button>
+                  <button type="button" class="rel-btn" (click)="downloadPdf(r.id)" title="Baixar PDF">PDF</button>
+                </div>
+              </div>
+            }
+          }
+        </div>
       </div>
 
       <div class="modal-footer modal-footer-between">

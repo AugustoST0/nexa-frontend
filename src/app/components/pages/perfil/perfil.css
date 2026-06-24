@@ -1,0 +1,80 @@
+.perfil-container {
+  padding: var(--spacing-8);
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+
+.page-header {
+  max-width: 480px;
+  margin: 0 0 24px;
+}
+
+.page-header h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: #0F172A;
+  margin: 0;
+  line-height: var(--line-height-tight);
+}
+
+.page-header p {
+  color: #64748B;
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.perfil-card {
+  max-width: 480px;
+  margin: 0;
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-badge {
+  display: inline-block;
+  background-color: #EEF2FF;
+  color: #4338CA;
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  margin-bottom: 24px;
+}
+
+.perfil-fields {
+  margin-bottom: 24px;
+}
+
+.perfil-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.perfil-field:last-child {
+  margin-bottom: 0;
+}
+
+.perfil-field label {
+  font-size: 13px;
+  color: #64748B;
+  font-weight: var(--font-weight-medium);
+}
+
+.perfil-field span {
+  font-size: 15px;
+  color: #0F172A;
+  font-weight: var(--font-weight-medium);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}

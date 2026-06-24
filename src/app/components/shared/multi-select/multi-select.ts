@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, Output, inject, signal, computed } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface MultiSelectOption {
@@ -13,8 +13,23 @@ export interface MultiSelectOption {
   templateUrl: './multi-select.html',
   styleUrls: ['./multi-select.css'],
 })
-export class MultiSelectComponent {
+export class MultiSelectComponent implements OnInit, OnDestroy {
   private readonly elementRef = inject(ElementRef);
+
+  private readonly closeOnOutsideClick = (event: MouseEvent) => {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.isOpen.set(false);
+      this.search.set('');
+    }
+  };
+
+  ngOnInit(): void {
+    document.addEventListener('click', this.closeOnOutsideClick, true);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.closeOnOutsideClick, true);
+  }
 
   @Input() options: MultiSelectOption[] = [];
   @Input() placeholder = 'Selecione...';
@@ -67,11 +82,4 @@ export class MultiSelectComponent {
     this.selectedChange.emit([]);
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!this.elementRef.nativeElement.contains(event.target)) {
-      this.isOpen.set(false);
-      this.search.set('');
-    }
-  }
 }
