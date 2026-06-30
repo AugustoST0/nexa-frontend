@@ -78,3 +78,9 @@ export const TIPO_SUPERVISOR_ENDPOINTS = {
     UPDATE: (id: number) => `${BASE_URL}/tipos-supervisor/${id}`,
     DELETE: (id: number) => `${BASE_URL}/tipos-supervisor/${id}`,
 } as const;
+
+export const IMPORTACAO_ENDPOINTS = {
+    PREVIEW:   `${BASE_URL}/colaboradores/importar/preview`,
+    VALIDAR:   `${BASE_URL}/colaboradores/importar/validar`,
+    CONFIRMAR: `${BASE_URL}/colaboradores/importar/confirmar`,
+} as const;

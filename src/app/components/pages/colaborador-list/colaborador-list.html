@@ -2,6 +2,10 @@
   <div class="header">
     <h1>Colaboradores</h1>
     <div class="header-actions">
+      <button type="button" class="btn-importar" (click)="openImportModal()">
+        <lucide-icon [img]="Upload" [size]="18"></lucide-icon>
+        <span>Importar CSV</span>
+      </button>
       <button type="button" class="btn-massa" (click)="openMassaModal()">
         <lucide-icon [img]="Users" [size]="18"></lucide-icon>
         <span>Atribuir Supervisão em Massa</span>
@@ -330,6 +334,227 @@
           <app-button variant="primary" [disabled]="!canAtribuirMassa()" (clicked)="atribuirEmMassa()">Atribuir</app-button>
         </div>
       </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Modal: Importar CSV ===== -->
+@if (showImportModal()) {
+  <div class="modal-overlay" (click)="closeImportModal()">
+    <div class="modal-card modal-card-xl" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <h2>Importar Colaboradores via CSV — Passo {{ importStep() }}/3</h2>
+        <button type="button" class="icon-btn" (click)="closeImportModal()" title="Fechar">
+          <lucide-icon [img]="X" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="modal-body import-body">
+
+        <!-- ===== Passo 1: Upload + Mapeamento ===== -->
+        @if (importStep() === 1) {
+          <div class="import-step1">
+            <div class="import-info">
+              <div class="import-info-icon">
+                <lucide-icon [img]="Info" [size]="16"></lucide-icon>
+              </div>
+              <div class="import-info-content">
+                <p class="import-info-title">Campos obrigatórios no CSV</p>
+                <p class="import-info-campos">
+                  Nome · Matrícula · Email · CPF · Data de Nascimento · Data de Admissão · Cargo · Departamento
+                </p>
+                <p class="import-info-nota">Colunas extras são ignoradas. Você escolherá qual coluna do seu arquivo corresponde a cada campo.</p>
+              </div>
+            </div>
+            <div class="import-upload-row">
+              <div class="field">
+                <label>Arquivo CSV</label>
+                <input type="file" accept=".csv" #fileInput hidden (change)="onImportFileChange($event)">
+                <button type="button" class="btn-escolher-arquivo" (click)="fileInput.click()">
+                  <lucide-icon [img]="Upload" [size]="16"></lucide-icon>
+                  <span>{{ importArquivo()?.name || 'Escolher arquivo CSV' }}</span>
+                </button>
+              </div>
+              <div class="field">
+                <label>Delimitador</label>
+                <select [ngModel]="importDelimitador()" (ngModelChange)="importDelimitador.set($event)">
+                  <option value=";">Ponto e vírgula (;)</option>
+                  <option value=",">Vírgula (,)</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                class="btn-carregar"
+                [disabled]="!importArquivo() || importLoading()"
+                (click)="carregarPreview()"
+              >
+                @if (importLoading() && !previewData()) {
+                  Carregando...
+                } @else {
+                  Carregar arquivo
+                }
+              </button>
+            </div>
+
+            @if (previewData()) {
+              <div class="mapeamento-section">
+                <h3>Mapeamento de Colunas</h3>
+                <p class="mapeamento-hint">Associe cada campo do sistema à coluna correspondente no seu CSV.</p>
+                <table class="mapeamento-table">
+                  <thead>
+                    <tr>
+                      <th>Campo do Sistema</th>
+                      <th>Coluna do CSV</th>
+                      <th>Formato de Data</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (campo of camposSistema; track campo.key) {
+                      <tr>
+                        <td class="campo-label">{{ campo.label }}</td>
+                        <td>
+                          <select
+                            [ngModel]="mapeamento()[campo.key] || ''"
+                            (ngModelChange)="setMapeamento(campo.key, $event)"
+                          >
+                            <option value="">— Selecione —</option>
+                            @for (col of previewData()!.colunasDetectadas; track col) {
+                              <option [value]="col">{{ col }}</option>
+                            }
+                          </select>
+                        </td>
+                        <td>
+                          @if (campo.isDate) {
+                            <select
+                              [ngModel]="formatoData()[campo.key] || 'dd/MM/yyyy'"
+                              (ngModelChange)="setFormatoData(campo.key, $event)"
+                            >
+                              @for (fmt of formatosData; track fmt) {
+                                <option [value]="fmt">{{ fmt }}</option>
+                              }
+                            </select>
+                          } @else {
+                            <span class="nd">—</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ===== Passo 2: Pré-visualização editável ===== -->
+        @if (importStep() === 2) {
+          <div class="import-counter">
+            <strong>{{ linhasValidas().length }}</strong> de {{ linhasValidadas().length }} linhas válidas
+          </div>
+          <div class="preview-table-wrapper">
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  @for (campo of camposSistema; track campo.key) {
+                    <th>{{ campo.label }}</th>
+                  }
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (linha of linhasValidadas(); track linha.numeroLinha) {
+                  <tr [class.linha-erro]="linha.erros.length > 0">
+                    <td>{{ linha.numeroLinha }}</td>
+                    @for (campo of camposSistema; track campo.key) {
+                      <td [class.celula-erro]="campoComErro(linha, campo.key)">
+                        <input
+                          type="text"
+                          [value]="linha.dados[campo.key] || ''"
+                          (input)="atualizarCelula(linha, campo.key, $any($event.target).value)"
+                        />
+                      </td>
+                    }
+                    <td>
+                      @if (linha.erros.length === 0) {
+                        <span class="status-valido">✓ Válido</span>
+                      } @else {
+                        <span class="status-invalido">{{ linha.erros.length }} erro(s)</span>
+                      }
+                    </td>
+                  </tr>
+                  @if (linha.erros.length > 0) {
+                    <tr class="erros-row">
+                      <td [attr.colspan]="camposSistema.length + 2">
+                        <ul class="erros-list">
+                          @for (erro of linha.erros; track erro) {
+                            <li>{{ erro }}</li>
+                          }
+                        </ul>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <!-- ===== Passo 3: Resumo ===== -->
+        @if (importStep() === 3 && importResumo()) {
+          <div class="resumo-total">
+            {{ importResumo()!.totalImportados }} colaborador(es) importado(s) com sucesso
+          </div>
+          @if (importResumo()!.totalIgnorados > 0) {
+            <p class="resumo-ignorados-titulo">{{ importResumo()!.totalIgnorados }} linha(s) ignorada(s):</p>
+            <ul class="resumo-ignoradas">
+              @for (linha of importResumo()!.linhasIgnoradas; track linha.numeroLinha) {
+                <li>Linha {{ linha.numeroLinha }}: {{ linha.erros.join(' · ') }}</li>
+              }
+            </ul>
+          }
+        }
+
+      </div>
+
+      <!-- Footer do modal -->
+      <div class="modal-footer">
+        @if (importStep() === 1) {
+          <span></span>
+          <div class="footer-actions">
+            <app-button variant="outline" (clicked)="closeImportModal()">Cancelar</app-button>
+            <app-button
+              variant="primary"
+              [disabled]="!previewData() || !mapeamentoCompleto() || importLoading()"
+              (clicked)="avancarParaValidacao()"
+            >
+              @if (importLoading()) { Validando... } @else { Avançar }
+            </app-button>
+          </div>
+        }
+        @if (importStep() === 2) {
+          <span class="massa-count">{{ linhasValidas().length }} linha(s) serão importadas</span>
+          <div class="footer-actions">
+            <app-button variant="outline" (clicked)="importStep.set(1)">Voltar</app-button>
+            <app-button variant="outline" (clicked)="closeImportModal()">Cancelar</app-button>
+            <app-button
+              variant="primary"
+              [disabled]="linhasValidas().length === 0 || importLoading()"
+              (clicked)="confirmarImportacao()"
+            >
+              @if (importLoading()) { Importando... } @else { Importar Válidas }
+            </app-button>
+          </div>
+        }
+        @if (importStep() === 3) {
+          <span></span>
+          <div class="footer-actions">
+            <app-button variant="primary" (clicked)="concluirImportacao()">Concluir</app-button>
+          </div>
+        }
+      </div>
+
     </div>
   </div>
 }

@@ -37,13 +37,7 @@ export class SearchValidationService {
       throw new ParameterError('Cargo deve ter no máximo 255 caracteres');
     }
 
-    // 3. Validação de formato CPF (opcional no frontend)
-    const cpfPattern = /^\d{3}\.\d{3}\.\d{3}-\d{2}$|^\d{11}$/;
-    if (params.cpf && !cpfPattern.test(params.cpf)) {
-      throw new ParameterError('CPF deve estar no formato 000.000.000-00 ou conter 11 dígitos');
-    }
-
-    // 4. Validação de matrícula (apenas alfanumérico)
+    // 3. Validação de matrícula (apenas alfanumérico)
     const matriculaPattern = /^[a-zA-Z0-9]+$/;
     if (params.matricula && !matriculaPattern.test(params.matricula)) {
       throw new ParameterError('Matrícula deve conter apenas letras e números');

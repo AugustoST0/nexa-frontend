@@ -1,12 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject, Subscription } from 'rxjs';
+import { debounceTime, map, switchMap } from 'rxjs';
 import { ColaboradorService } from '../../../core/services/crud/colaborador-service';
 import { SupervisaoService } from '../../../core/services/crud/supervisao-service';
+import { ImportacaoService } from '../../../core/services/crud/importacao-service';
 import { ColaboradorWithCalcs } from '../../../core/model/ColaboradorWithCalcs.model';
 import { Supervisao, TipoSupervisor } from '../../../core/model/Supervisao.model';
+import { ImportPreview, LinhaImport, ImportResumo } from '../../../core/model/Importacao.model';
 import { AlertService } from '../../../core/services/alert-service';
 import { ModalService } from '../../../core/services/modal-service';
 import { DetailModalConfig, DetailField } from '../../../core/model/DetailModalConfig.model';
@@ -15,7 +18,7 @@ import { ButtonComponent } from '../../ui/button/button';
 import { CardComponent } from '../../ui/card/card';
 import { ColaboradorFilterComponent } from '../../shared/colaborador-filter/colaborador-filter';
 import { SearchableSelectComponent } from '../../shared/searchable-select/searchable-select';
-import { LucideAngularModule, Eye, Edit, Trash2, Network, X, Users, UserMinus, ChevronUp, ChevronDown } from 'lucide-angular';
+import { LucideAngularModule, Eye, Edit, Trash2, Network, X, Users, UserMinus, ChevronUp, ChevronDown, Upload, Info } from 'lucide-angular';
 
 @Component({
   selector: 'app-colaborador-list',
@@ -24,9 +27,10 @@ import { LucideAngularModule, Eye, Edit, Trash2, Network, X, Users, UserMinus, C
   styleUrl: './colaborador-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ColaboradorList implements OnInit {
+export class ColaboradorList implements OnInit, OnDestroy {
   private readonly colaboradorService = inject(ColaboradorService);
   private readonly supervisaoService = inject(SupervisaoService);
+  private readonly importacaoService = inject(ImportacaoService);
   private readonly router = inject(Router);
   private readonly alertService = inject(AlertService);
   private readonly modalService = inject(ModalService);
@@ -68,6 +72,8 @@ export class ColaboradorList implements OnInit {
   readonly UserMinus = UserMinus;
   readonly ChevronUp = ChevronUp;
   readonly ChevronDown = ChevronDown;
+  readonly Upload = Upload;
+  readonly Info = Info;
 
   // Modal "Gerenciar Supervisão"
   showSupervisaoModal = signal(false);
@@ -102,8 +108,68 @@ export class ColaboradorList implements OnInit {
     () => !!this.massaSupervisorId() && !!this.massaTipoId() && this.massaSelecionados().size > 0
   );
 
+  // ===== Modal "Importar CSV" =====
+  showImportModal = signal(false);
+  importStep = signal<1 | 2 | 3>(1);
+  importArquivo = signal<File | null>(null);
+  importDelimitador = signal(';');
+  importLoading = signal(false);
+  previewData = signal<ImportPreview | null>(null);
+  mapeamento = signal<Record<string, string>>({});
+  formatoData = signal<Record<string, string>>({
+    dataNascimento: 'dd/MM/yyyy',
+    dataAdmissao: 'dd/MM/yyyy',
+  });
+  linhasValidadas = signal<LinhaImport[]>([]);
+  importResumo = signal<ImportResumo | null>(null);
+
+  linhasValidas = computed(() => this.linhasValidadas().filter(l => l.erros.length === 0));
+
+  readonly camposSistema = [
+    { key: 'nome',           label: 'Nome',              isDate: false },
+    { key: 'matricula',      label: 'Matrícula',          isDate: false },
+    { key: 'email',          label: 'Email',              isDate: false },
+    { key: 'cpf',            label: 'CPF',                isDate: false },
+    { key: 'dataNascimento', label: 'Data de Nascimento', isDate: true  },
+    { key: 'dataAdmissao',   label: 'Data de Admissão',   isDate: true  },
+    { key: 'cargo',          label: 'Cargo',              isDate: false },
+    { key: 'departamento',   label: 'Departamento',       isDate: false },
+  ];
+
+  readonly formatosData = ['dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'];
+
+  private readonly prefixosErro: Record<string, string[]> = {
+    nome:           ['Nome'],
+    matricula:      ['Matrícula', 'Matricula'],
+    email:          ['Email'],
+    cpf:            ['CPF'],
+    dataNascimento: ['Data de nascimento'],
+    dataAdmissao:   ['Data de admissão', 'Data de admissao'],
+    cargo:          ['Cargo'],
+    departamento:   ['Departamento'],
+  };
+
+  private readonly validacaoSubject = new Subject<{ linha: LinhaImport; campo: string }>();
+  private validacaoSub?: Subscription;
+
   ngOnInit() {
     this.loadColaboradores();
+    this.validacaoSub = this.validacaoSubject.pipe(
+      debounceTime(500),
+      switchMap(({ linha }) =>
+        this.importacaoService.validar([linha.dados]).pipe(
+          map(([resultado]) => ({ numeroLinha: linha.numeroLinha, erros: resultado.erros }))
+        )
+      )
+    ).subscribe(({ numeroLinha, erros }) => {
+      this.linhasValidadas.update(arr =>
+        arr.map(l => l.numeroLinha === numeroLinha ? { ...l, erros } : l)
+      );
+    });
+  }
+
+  ngOnDestroy() {
+    this.validacaoSub?.unsubscribe();
   }
 
   loadColaboradores() {
@@ -428,5 +494,133 @@ export class ColaboradorList implements OnInit {
 
   onNew() {
     this.router.navigate(['/colaboradores/novo']);
+  }
+
+  // ===== Modal "Importar CSV" =====
+  openImportModal() {
+    this.importStep.set(1);
+    this.importArquivo.set(null);
+    this.importDelimitador.set(';');
+    this.importLoading.set(false);
+    this.previewData.set(null);
+    this.mapeamento.set({});
+    this.formatoData.set({ dataNascimento: 'dd/MM/yyyy', dataAdmissao: 'dd/MM/yyyy' });
+    this.linhasValidadas.set([]);
+    this.importResumo.set(null);
+    this.showImportModal.set(true);
+  }
+
+  closeImportModal() {
+    this.showImportModal.set(false);
+  }
+
+  onImportFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.importArquivo.set(input.files?.[0] ?? null);
+    this.previewData.set(null);
+  }
+
+  carregarPreview() {
+    const file = this.importArquivo();
+    if (!file) return;
+    this.importLoading.set(true);
+    this.importacaoService.preview(file, this.importDelimitador()).subscribe({
+      next: (data) => {
+        this.previewData.set(data);
+        this.importLoading.set(false);
+      },
+      error: () => {
+        this.alertService.error('Erro ao processar arquivo CSV');
+        this.importLoading.set(false);
+      },
+    });
+  }
+
+  setMapeamento(campo: string, colunaCsv: string) {
+    this.mapeamento.set({ ...this.mapeamento(), [campo]: colunaCsv });
+  }
+
+  setFormatoData(campo: string, formato: string) {
+    this.formatoData.set({ ...this.formatoData(), [campo]: formato });
+  }
+
+  mapeamentoCompleto(): boolean {
+    const map = this.mapeamento();
+    return this.camposSistema.every(c => !!map[c.key]);
+  }
+
+  private converterData(valor: string, formato: string): string {
+    if (!valor) return '';
+    const partes = valor.split(/[\/\-]/);
+    if (partes.length !== 3) return valor;
+    if (formato === 'dd/MM/yyyy') return `${partes[2]}-${partes[1]}-${partes[0]}`;
+    if (formato === 'MM/dd/yyyy') return `${partes[2]}-${partes[0]}-${partes[1]}`;
+    return valor;
+  }
+
+  avancarParaValidacao() {
+    const preview = this.previewData();
+    if (!preview) return;
+    const map = this.mapeamento();
+    const fmts = this.formatoData();
+
+    const linhasMapeadas: Record<string, string>[] = preview.linhas.map(linha => {
+      const dados: Record<string, string> = {};
+      for (const campo of this.camposSistema) {
+        const colunaCsv = map[campo.key];
+        let valor = colunaCsv ? (linha.dados[colunaCsv] ?? '') : '';
+        if (campo.isDate && valor) {
+          valor = this.converterData(valor, fmts[campo.key] ?? 'dd/MM/yyyy');
+        }
+        dados[campo.key] = valor;
+      }
+      return dados;
+    });
+
+    this.importLoading.set(true);
+    this.importacaoService.validar(linhasMapeadas).subscribe({
+      next: (linhas) => {
+        this.linhasValidadas.set(linhas);
+        this.importStep.set(2);
+        this.importLoading.set(false);
+      },
+      error: () => {
+        this.alertService.error('Erro ao validar linhas');
+        this.importLoading.set(false);
+      },
+    });
+  }
+
+  campoComErro(linha: LinhaImport, campo: string): boolean {
+    if (!linha.erros.length) return false;
+    const prefixos = this.prefixosErro[campo] ?? [];
+    return linha.erros.some(e =>
+      prefixos.some(p => e.toLowerCase().startsWith(p.toLowerCase()))
+    );
+  }
+
+  atualizarCelula(linha: LinhaImport, campo: string, valor: string) {
+    linha.dados[campo] = valor;
+    this.validacaoSubject.next({ linha, campo });
+  }
+
+  confirmarImportacao() {
+    this.importLoading.set(true);
+    this.importacaoService.confirmar(this.linhasValidadas()).subscribe({
+      next: (resumo) => {
+        this.importResumo.set(resumo);
+        this.importStep.set(3);
+        this.importLoading.set(false);
+      },
+      error: () => {
+        this.alertService.error('Erro ao importar colaboradores');
+        this.importLoading.set(false);
+      },
+    });
+  }
+
+  concluirImportacao() {
+    this.closeImportModal();
+    this.loadColaboradores();
   }
 }
